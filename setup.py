@@ -13,8 +13,8 @@ os.environ["CPPFLAGS"] = "-std=c++11"
 extension_mod = Extension(
     "_magphyxp", 
     language='c++',
-    include_dirs=['/Users/edwajohn/anaconda3/include/python3.6m'],
-    sources=["Options.cpp", "magphyxp_wrap.cxx", "magphyxp.cpp", "magphyxp_impl.cpp"],
+    # include_dirs=['/Users/edwajohn/anaconda3/include/python3.6m'],
+    sources=["Options.cpp", "MagPhyxP_wrap.cxx", "magphyxp.cpp", "magphyxp_impl.cpp"],
     extra_compile_args=['-std=c++11'],
     libraries=['gsl', 'gslcblas', 'm']
 )
