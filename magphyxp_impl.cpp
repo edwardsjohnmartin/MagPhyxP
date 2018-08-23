@@ -28,10 +28,7 @@ Options o(default_n, default_h, default_eps, default_dynamics);
 Dipole doSimulation(const Dipole& freeDipole, Event& event);
 Dipole doSimulation(const Dipole& freeDipole);
 
-// An implementation of the f() function to find the distance
-// in phase space from the initial conditions after num_events.
-double period_impl(double ptheta, double pphi, int num_events, double energy) {
-  o.numEvents = num_events;
+Dipole create_dipole(double ptheta, double pphi, double energy) {
   const double r = 1;
   const double theta = 0.0;
   const double phi = 0.0;
@@ -42,6 +39,14 @@ double period_impl(double ptheta, double pphi, int num_events, double energy) {
   o.initialized = true;
   
   Dipole freeDipole = o.dipole;
+  return freeDipole;
+}
+
+// An implementation of the f() function to find the distance
+// in phase space from the initial conditions after num_events.
+double period_impl(double ptheta, double pphi, int num_events, double energy) {
+  o.numEvents = num_events;
+  Dipole freeDipole = create_dipole(ptheta, pphi, energy);
   Dipole endDipole = doSimulation(freeDipole);
   double dist = sqrt((endDipole.get_theta() - freeDipole.get_theta())*
                      (endDipole.get_theta() - freeDipole.get_theta()) + 
@@ -229,4 +234,184 @@ Dipole doSimulation(const Dipole& freeDipole) {
   // printf("m: %d\n", m);
 
   return toReturn;
+}
+
+//---------------------------------------------------------------------------
+// Minimization code
+//---------------------------------------------------------------------------
+
+double my_f (const gsl_vector* v, void* params) {
+  // double x, y, z, m, n;
+  Dipole toUse;
+
+  double theta = gsl_vector_get(v, 0);
+  double phi = gsl_vector_get(v, 1);
+  double ptheta = gsl_vector_get(v, 2);
+  double pphi = gsl_vector_get(v, 3);
+
+  double* E = (double*)params;
+  double pr2 = abs(2*(*E) + (cos(phi) + 3*cos(phi - 2*theta))/
+                       (6*1*1*1) - ptheta*ptheta/(1*1) - 10*pphi*pphi);
+
+  if (pr2 < 0.0) {
+    exit(EXIT_FAILURE);
+  }
+
+  double pr = sqrt(pr2);
+
+  toUse.set_r(1);
+  toUse.set_theta(theta);
+  toUse.set_phi(phi);
+  toUse.set_pr(pr);
+  toUse.set_ptheta(ptheta);
+  toUse.set_pphi(pphi);
+
+  Dipole endDipole = doSimulation(toUse);
+
+  return (theta - endDipole.get_theta())*(theta - endDipole.get_theta()) + 
+         (phi - endDipole.get_phi())*(phi - endDipole.get_phi()) + 
+         (pr - endDipole.get_pr())*(pr - endDipole.get_pr()) + 
+         (ptheta - endDipole.get_ptheta())*(ptheta - endDipole.get_ptheta()) +
+         (pphi - endDipole.get_pphi())*(pphi - endDipole.get_pphi());
+}
+
+struct Minimum {
+  double ptheta;
+  double pphi;
+  double f;
+};
+
+Minimum calculate_min_impl(double ptheta, double pphi,
+                     int num_events, double energy) {
+  o.numEvents = num_events;
+  Dipole freeDipole = create_dipole(ptheta, pphi, energy);
+  unsigned int iter = 0;
+  int status;
+
+  const gsl_multimin_fminimizer_type *T;
+  gsl_multimin_fminimizer *s;
+
+  gsl_vector *x;
+  gsl_vector *simplex_step;
+  gsl_multimin_function my_func;
+  double size;
+
+  my_func.n = 4;
+  my_func.f = my_f;
+  // -----------------------
+  double param = freeDipole.get_E();
+  my_func.params = &param;
+  // -----------------------
+
+  x = gsl_vector_alloc(4);
+  gsl_vector_set(x, 0, freeDipole.get_theta());
+  gsl_vector_set(x, 1, freeDipole.get_phi());
+  gsl_vector_set(x, 2, freeDipole.get_ptheta());
+  gsl_vector_set(x, 3, freeDipole.get_pphi());
+  
+
+  T = gsl_multimin_fminimizer_nmsimplex2;
+  s = gsl_multimin_fminimizer_alloc (T, 4);
+
+  simplex_step = gsl_vector_alloc (4);
+  gsl_vector_set(simplex_step, 0, 0.001);
+  gsl_vector_set(simplex_step, 1, 0.001);
+  gsl_vector_set(simplex_step, 2, 0.001);
+  gsl_vector_set(simplex_step, 3, 0.001);
+  gsl_multimin_fminimizer_set(s, &my_func, x, simplex_step);
+
+  // FILE* file = fopen("minimums.txt", "w");
+
+  do {
+    iter++;
+    status = gsl_multimin_fminimizer_iterate(s);
+
+    // printf ("error: %s\n", gsl_strerror (status));
+
+    if (status)
+      break;
+
+    size = gsl_multimin_fminimizer_size(s);
+    status = gsl_multimin_test_size(size, 1e-7);
+
+    if (status == GSL_SUCCESS) {
+      /* printf ("\nMinimum found at:\n");
+      printf ("%5d %.5f %.5f %.5f %.5f %.5f %10.10f\n", iter,
+        Physics::rad2deg(gsl_vector_get (s->x, 0)),
+        Physics::rad2deg(gsl_vector_get (s->x, 1)),
+        sqrt(2*param + (cos(gsl_vector_get (s->x, 1)) + 3*cos(gsl_vector_get (s->x, 1) - 2*gsl_vector_get (s->x, 0)))/(6*1*1*1) - gsl_vector_get (s->x, 2)*gsl_vector_get (s->x, 2)/(1*1) - 10*gsl_vector_get (s->x, 3)*gsl_vector_get (s->x, 3)),
+        gsl_vector_get (s->x, 2),
+        gsl_vector_get (s->x, 3),
+        s->fval); */
+    }
+
+      /* printf ("%5d %.5f %.5f %.5f %.5f %.5f %10.10f\n", iter,
+        Physics::rad2deg(gsl_vector_get (s->x, 0)),
+        Physics::rad2deg(gsl_vector_get (s->x, 1)),
+        sqrt(2*param + (cos(gsl_vector_get (s->x, 1)) + 3*cos(gsl_vector_get (s->x, 1) - 2*gsl_vector_get (s->x, 0)))/(6*1*1*1) - gsl_vector_get (s->x, 2)*gsl_vector_get (s->x, 2)/(1*1) - 10*gsl_vector_get (s->x, 3)*gsl_vector_get (s->x, 3)),
+        gsl_vector_get (s->x, 2),
+        gsl_vector_get (s->x, 3),
+        s->fval); */
+
+      double theta = Physics::rad2deg(gsl_vector_get (s->x, 0));
+      double phi = Physics::rad2deg(gsl_vector_get (s->x, 1));
+      double pr = sqrt(2*param + (cos(gsl_vector_get (s->x, 1)) + 3*cos(gsl_vector_get (s->x, 1) - 2*gsl_vector_get (s->x, 0)))/(6*1*1*1) - gsl_vector_get (s->x, 2)*gsl_vector_get (s->x, 2)/(1*1) - 10*gsl_vector_get (s->x, 3)*gsl_vector_get (s->x, 3));
+      double ptheta = gsl_vector_get (s->x, 2);
+      double pphi = gsl_vector_get (s->x, 3);
+
+      double values[5] = { theta, phi, pr, ptheta, pphi };
+
+      for (int i = 0; i < 5; i++) {
+        if (abs(values[i] - 0.0) <= 0.0001) {
+          values[i] = 0.0;
+        }
+      }
+
+      // fprintf(file, "%d %.4f %.4f %.4f %.4f %.4f %.5f\n", 
+      //     1,
+      //     values[0],
+      //     values[1],
+      //     values[2],
+      //     values[3],
+      //     values[4],
+      //     s->fval);
+
+  } while (status == GSL_CONTINUE && iter < 1000);
+
+  /* double theta = Physics::rad2deg(gsl_vector_get (s->x, 0));
+  double phi = Physics::rad2deg(gsl_vector_get (s->x, 1));
+  double pr = sqrt(2*param + (cos(gsl_vector_get (s->x, 1)) + 3*cos(gsl_vector_get (s->x, 1) - 2*gsl_vector_get (s->x, 0)))/(6*1*1*1) - gsl_vector_get (s->x, 2)*gsl_vector_get (s->x, 2)/(1*1) - 10*gsl_vector_get (s->x, 3)*gsl_vector_get (s->x, 3));
+  double ptheta = gsl_vector_get (s->x, 2);
+  double pphi = gsl_vector_get (s->x, 3);
+
+  double values[5] = { theta, phi, pr, ptheta, pphi };
+
+  for (int i = 0; i < 5; i++) {
+    if (abs(values[i] - 0.0) <= 0.0001) {
+      values[i] = 0.0;
+    }
+  } */
+
+  // FILE* file = fopen("minimums.txt", "w");
+  // fprintf(file, "r, theta, phi, pr, ptheta, pphi, fval\n");
+  /* fprintf(file, "%d %.4f %.4f %.4f %.4f %.4f %.5f\n", 
+          1,
+          values[0],
+          values[1],
+          values[2],
+          values[3],
+          values[4],
+          s->fval); */
+  // fclose(file);
+  // file = fopen("iters.txt", "w");
+  // fprintf(file, "%d\n", iter);
+  // fclose(file);
+
+  Minimum ret = {
+    gsl_vector_get(s->x, 2), gsl_vector_get(s->x, 3), s->fval };
+
+  gsl_multimin_fminimizer_free (s);
+  gsl_vector_free (x);
+
+  return ret;
 }
