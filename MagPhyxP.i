@@ -3,7 +3,7 @@
  %{
  /* Put header files here or function declarations like below */
  extern double period(double ptheta, double pphi, int num_events, double energy);
-extern struct Minimum {
+struct Minimum {
   double ptheta;
   double pphi;
   double f;
@@ -13,7 +13,7 @@ extern struct Minimum {
  %}
  
  extern double period(double ptheta, double pphi, int num_events, double energy);
-extern struct Minimum {
+struct Minimum {
   double ptheta;
   double pphi;
   double f;

@@ -1,4 +1,4 @@
-extern struct Minimum {
+struct Minimum {
   double ptheta;
   double pphi;
   double f;
