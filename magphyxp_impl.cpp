@@ -28,6 +28,8 @@ Options o(default_n, default_h, default_eps, default_dynamics);
 Dipole doSimulation(const Dipole& freeDipole, Event& event);
 Dipole doSimulation(const Dipole& freeDipole);
 
+// An implementation of the f() function to find the distance
+// in phase space from the initial conditions after num_events.
 double period_impl(double ptheta, double pphi, int num_events, double energy) {
   o.numEvents = num_events;
   const double r = 1;
