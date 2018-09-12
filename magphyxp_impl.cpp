@@ -275,34 +275,34 @@ double my_f (const gsl_vector* v, void* params) {
          (pphi - endDipole.get_pphi())*(pphi - endDipole.get_pphi());
 }
 
-double my_df (const gsl_vector* v, void* params) {
-  double h = 0.0005;
+// double my_df (const gsl_vector* v, void* params) {
+  // double h = 0.0005;
 
-  double theta = gsl_vector_get(v, 0);
-  double phi = gsl_vector_get(v, 1);
-  double ptheta = gsl_vector_get(v, 2);
-  double pphi = gsl_vector_get(v, 3);
+  // double theta = gsl_vector_get(v, 0);
+  // double phi = gsl_vector_get(v, 1);
+  // double ptheta = gsl_vector_get(v, 2);
+  // double pphi = gsl_vector_get(v, 3);
 
-  double* E = (double*)params;
-  double pr2 = abs(2*(*E) + (cos(phi) + 3*cos(phi - 2*theta))/
-                       (6*1*1*1) - ptheta*ptheta/(1*1) - 10*pphi*pphi);
+  // double* E = (double*)params;
+  // double pr2 = abs(2*(*E) + (cos(phi) + 3*cos(phi - 2*theta))/
+  //                      (6*1*1*1) - ptheta*ptheta/(1*1) - 10*pphi*pphi);
 
-  if (pr2 < 0.0) {
-    exit(EXIT_FAILURE);
-  }
+  // if (pr2 < 0.0) {
+  //   exit(EXIT_FAILURE);
+  // }
 
-  double pr = sqrt(pr2);
+  // double pr = sqrt(pr2);
 
-  gsl_vector_set(v, 0, theta + h);
-  toUse.set_r(1);
-  toUse.set_theta(theta);
-  toUse.set_phi(phi);
-  toUse.set_pr(pr);
-  toUse.set_ptheta(ptheta);
-  toUse.set_pphi(pphi);
+  // gsl_vector_set(v, 0, theta + h);
+  // toUse.set_r(1);
+  // toUse.set_theta(theta);
+  // toUse.set_phi(phi);
+  // toUse.set_pr(pr);
+  // toUse.set_ptheta(ptheta);
+  // toUse.set_pphi(pphi);
 
-  Dipole endDipole = doSimulation(toUse);
-}
+  // Dipole endDipole = doSimulation(toUse);
+// }
 
 struct Minimum {
   double ptheta;
