@@ -9,7 +9,7 @@ struct Minimum {
   double f;
 };
 
- extern Minimum calculate_min(double ptheta, double pphi, int num_events, double energy);
+ extern Minimum calculate_min(double ptheta, double pphi, int num_events, double energy, double step_size);
  %}
  
  extern double period(double ptheta, double pphi, int num_events, double energy);
@@ -18,4 +18,4 @@ struct Minimum {
   double pphi;
   double f;
 };
- extern Minimum calculate_min(double ptheta, double pphi, int num_events, double energy);
+ extern Minimum calculate_min(double ptheta, double pphi, int num_events, double energy, double step_size);

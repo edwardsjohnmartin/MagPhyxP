@@ -5,6 +5,8 @@ all: clean
 #	CC=g++
 #	CXX=g++
 	python setup.py build_ext --inplace
+test: main.cpp magphyxp_impl.cpp Options.cpp Stepper.h Physics.h
+	c++ -o test main.cpp magphyxp_impl.cpp Options.cpp -lgsl -lgslcblas
 clean:
 	rm -f *.o
 	rm -f magphyxp_wrap.cxx

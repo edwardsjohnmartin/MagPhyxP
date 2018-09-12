@@ -275,6 +275,35 @@ double my_f (const gsl_vector* v, void* params) {
          (pphi - endDipole.get_pphi())*(pphi - endDipole.get_pphi());
 }
 
+double my_df (const gsl_vector* v, void* params) {
+  double h = 0.0005;
+
+  double theta = gsl_vector_get(v, 0);
+  double phi = gsl_vector_get(v, 1);
+  double ptheta = gsl_vector_get(v, 2);
+  double pphi = gsl_vector_get(v, 3);
+
+  double* E = (double*)params;
+  double pr2 = abs(2*(*E) + (cos(phi) + 3*cos(phi - 2*theta))/
+                       (6*1*1*1) - ptheta*ptheta/(1*1) - 10*pphi*pphi);
+
+  if (pr2 < 0.0) {
+    exit(EXIT_FAILURE);
+  }
+
+  double pr = sqrt(pr2);
+
+  gsl_vector_set(v, 0, theta + h);
+  toUse.set_r(1);
+  toUse.set_theta(theta);
+  toUse.set_phi(phi);
+  toUse.set_pr(pr);
+  toUse.set_ptheta(ptheta);
+  toUse.set_pphi(pphi);
+
+  Dipole endDipole = doSimulation(toUse);
+}
+
 struct Minimum {
   double ptheta;
   double pphi;
@@ -282,7 +311,7 @@ struct Minimum {
 };
 
 Minimum calculate_min_impl(double ptheta, double pphi,
-                     int num_events, double energy) {
+                     int num_events, double energy, double step_size) {
   o.numEvents = num_events;
   Dipole freeDipole = create_dipole(ptheta, pphi, energy);
   unsigned int iter = 0;
@@ -314,10 +343,10 @@ Minimum calculate_min_impl(double ptheta, double pphi,
   s = gsl_multimin_fminimizer_alloc (T, 4);
 
   simplex_step = gsl_vector_alloc (4);
-  gsl_vector_set(simplex_step, 0, 0.001);
-  gsl_vector_set(simplex_step, 1, 0.001);
-  gsl_vector_set(simplex_step, 2, 0.001);
-  gsl_vector_set(simplex_step, 3, 0.001);
+  gsl_vector_set(simplex_step, 0, step_size);
+  gsl_vector_set(simplex_step, 1, step_size);
+  gsl_vector_set(simplex_step, 2, step_size);
+  gsl_vector_set(simplex_step, 3, step_size);
   gsl_multimin_fminimizer_set(s, &my_func, x, simplex_step);
 
   // FILE* file = fopen("minimums.txt", "w");
