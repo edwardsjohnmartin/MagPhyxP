@@ -119,7 +119,49 @@ void printUsage() {
   fprintf(stderr, "\n");
 }
 
+// struct f_params {
+//   f_params(int param_, double* params_) {
+//     param = param_;
+//     for (int i = 0; i < 2; ++i) {
+//       params[i] = params_[i];
+//     }
+//   }
+//   int param;
+//   double params[2];
+// };
+
+// double f(double x_, void* params_) {
+//   f_params params = *((f_params*)params_);
+//   double x = params.params[0];
+//   double y = params.params[1];
+//   if (params.param == 0) {
+//     x = x_;
+//   } else {
+//     y = x_;
+//   }
+//   return x*x + 2*x*y + y*y*y;
+// }
+
+// void compute_gradient(double* p, double* grad) {
+//   const double h = 0.0001;
+//   for (int i = 0; i < 2; ++i) {
+//     f_params fparams(i, p);
+//     gsl_function F;
+//     F.function = &f;
+//     F.params = &fparams;
+//     double result, abserr;
+//     gsl_deriv_central(&F, p[i], h, &result, &abserr);
+//     grad[i] = result;
+//   }
+// }
+
 int main(int argc, char** argv) {
+  // double p[] = { 3,3 };
+  // double grad[2];
+  // compute_gradient(p, grad);
+  // printf("%f %f\n", grad[0], grad[1]);
+  // return 0;
+
   // int i = 1;
   // bool stop = false;
   // while (i < argc && !stop) {
@@ -155,7 +197,15 @@ int main(int argc, char** argv) {
   //   // -----------------------------
   // }
 
-  Minimum min = calculate_min_impl(-0.28, 0.17, 4, -0.1, 0.00001);
+  // double ptheta = -0.28;
+  // double pphi = 0.17;
+  double ptheta = -0.15;
+  double pphi = 0.14;
+
+  int num_events = 4;
+  double energy = -0.1;
+  Minimum min = calculate_min_impl(ptheta, pphi, num_events, energy, 0.00001);
+  printf("ptheta: %.4f pphi: %.4f\n", ptheta, pphi);
   printf("ptheta: %.4f pphi: %.4f fval: %.4f\n", min.ptheta, min.pphi, min.f);
 
   return 0;

@@ -9,6 +9,8 @@
 #include <gsl/gsl_odeiv2.h>
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_multimin.h>
+#include <gsl/gsl_math.h>
+#include <gsl/gsl_deriv.h>
 
 #include "./Dipole.h"
 #include "./Physics.h"
@@ -275,34 +277,46 @@ double my_f (const gsl_vector* v, void* params) {
          (pphi - endDipole.get_pphi())*(pphi - endDipole.get_pphi());
 }
 
-// double my_df (const gsl_vector* v, void* params) {
-  // double h = 0.0005;
+struct f_params {
+  f_params(int param_, const gsl_vector* p_, double E_) {
+    param = param_;
+    p = p_;
+    // for (int i = 0; i < 4; ++i) {
+    //   params[i] = params_[i];
+    // }
+    E = E_;
+  }
+  int param;
+  // double params[4];
+  const gsl_vector* p;
+  double E;
+};
 
-  // double theta = gsl_vector_get(v, 0);
-  // double phi = gsl_vector_get(v, 1);
-  // double ptheta = gsl_vector_get(v, 2);
-  // double pphi = gsl_vector_get(v, 3);
+double f(double x_, void* params_) {
+  f_params fparams = *((f_params*)params_);
+  gsl_vector* v = gsl_vector_alloc(4);
+  for (int i = 0; i < 4; ++i) {
+    gsl_vector_set(v, i, gsl_vector_get(fparams.p, i));
+  }
+  gsl_vector_set(v, fparams.param, x_);
+  double ret = my_f(v, &fparams.E);
+  gsl_vector_free(v);
+  return ret;
+}
 
-  // double* E = (double*)params;
-  // double pr2 = abs(2*(*E) + (cos(phi) + 3*cos(phi - 2*theta))/
-  //                      (6*1*1*1) - ptheta*ptheta/(1*1) - 10*pphi*pphi);
-
-  // if (pr2 < 0.0) {
-  //   exit(EXIT_FAILURE);
-  // }
-
-  // double pr = sqrt(pr2);
-
-  // gsl_vector_set(v, 0, theta + h);
-  // toUse.set_r(1);
-  // toUse.set_theta(theta);
-  // toUse.set_phi(phi);
-  // toUse.set_pr(pr);
-  // toUse.set_ptheta(ptheta);
-  // toUse.set_pphi(pphi);
-
-  // Dipole endDipole = doSimulation(toUse);
-// }
+void my_df (const gsl_vector* v, void* params, gsl_vector* df) {
+  const double h = 0.0001;
+  const double E = *(double*)(params);
+  for (int i = 0; i < 4; ++i) {
+    f_params fparams(i, v, E);
+    gsl_function F;
+    F.function = &f;
+    F.params = &fparams;
+    double result, abserr;
+    gsl_deriv_central(&F, gsl_vector_get(v, i), h, &result, &abserr);
+    gsl_vector_set(df, i, result);
+  }
+}
 
 struct Minimum {
   double ptheta;
