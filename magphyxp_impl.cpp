@@ -30,12 +30,31 @@ Options o(default_n, default_h, default_eps, default_dynamics);
 Dipole doSimulation(const Dipole& freeDipole, Event& event);
 Dipole doSimulation(const Dipole& freeDipole);
 
+double calculate_pr2(
+    double r, double theta, double phi, double ptheta, double pphi,
+    double energy) {
+  // const double pr = sqrt(abs(2*energy + (cos(phi)+3*cos(phi-2*theta))/
+  //                            (6*r*r*r)-ptheta*ptheta/(r*r)-10*pphi*pphi));
+  // double pr2 = abs(2*E + (cos(phi) + 3*cos(phi - 2*theta))/
+  //                      (6*1*1*1) - ptheta*ptheta/(1*1) - 10*pphi*pphi);
+  const double pr2 = abs(2*energy + (cos(phi)+3*cos(phi-2*theta))/
+                         (6*r*r*r)-ptheta*ptheta/(r*r)-10*pphi*pphi);
+  return pr2;
+}
+
+double calculate_pr(
+    double r, double theta, double phi, double ptheta, double pphi,
+    double energy) {
+  return sqrt(calculate_pr2(r, theta, phi, ptheta, pphi, energy));
+}
+
 Dipole create_dipole(double ptheta, double pphi, double energy) {
   const double r = 1;
   const double theta = 0.0;
   const double phi = 0.0;
-  const double pr = sqrt(abs(2*energy + (cos(phi)+3*cos(phi-2*theta))/
-                             (6*r*r*r)-ptheta*ptheta/(r*r)-10*pphi*pphi));
+  // const double pr = sqrt(abs(2*energy + (cos(phi)+3*cos(phi-2*theta))/
+  //                            (6*r*r*r)-ptheta*ptheta/(r*r)-10*pphi*pphi));
+  const double pr = calculate_pr(r, theta, phi, ptheta, pphi, energy);
   // -----------------------------
   o.dipole = Dipole(r, theta, phi, pr, ptheta, pphi);
   o.initialized = true;
@@ -44,22 +63,44 @@ Dipole create_dipole(double ptheta, double pphi, double energy) {
   return freeDipole;
 }
 
+double calculate_error(const Dipole& freeDipole, const Dipole& endDipole) {
+  // double fval = 
+  //     (theta - endDipole.get_theta())*(theta - endDipole.get_theta()) + 
+  //     (phi - endDipole.get_phi())*(phi - endDipole.get_phi()) + 
+  //     (pr - endDipole.get_pr())*(pr - endDipole.get_pr()) + 
+  //     (ptheta - endDipole.get_ptheta())*(ptheta - endDipole.get_ptheta()) +
+  //     (pphi - endDipole.get_pphi())*(pphi - endDipole.get_pphi());
+  const double dist = sqrt(
+      (endDipole.get_theta() - freeDipole.get_theta())*
+      (endDipole.get_theta() - freeDipole.get_theta()) + 
+      (endDipole.get_phi() - freeDipole.get_phi())*
+      (endDipole.get_phi() - freeDipole.get_phi()) +
+      (endDipole.get_pr() - freeDipole.get_pr())*
+      (endDipole.get_pr() - freeDipole.get_pr()) +
+      (endDipole.get_ptheta() - freeDipole.get_ptheta())*
+      (endDipole.get_ptheta() - freeDipole.get_ptheta()) +
+      (endDipole.get_pphi() - freeDipole.get_pphi())*
+      (endDipole.get_pphi() - freeDipole.get_pphi()));
+  return dist;
+}
+
 // An implementation of the f() function to find the distance
 // in phase space from the initial conditions after num_events.
 double period_impl(double ptheta, double pphi, int num_events, double energy) {
   o.numEvents = num_events;
   Dipole freeDipole = create_dipole(ptheta, pphi, energy);
   Dipole endDipole = doSimulation(freeDipole);
-  double dist = sqrt((endDipole.get_theta() - freeDipole.get_theta())*
-                     (endDipole.get_theta() - freeDipole.get_theta()) + 
-                     (endDipole.get_phi() - freeDipole.get_phi())*
-                     (endDipole.get_phi() - freeDipole.get_phi()) +
-                     (endDipole.get_pr() - freeDipole.get_pr())*
-                     (endDipole.get_pr() - freeDipole.get_pr()) +
-                     (endDipole.get_ptheta() - freeDipole.get_ptheta())*
-                     (endDipole.get_ptheta() - freeDipole.get_ptheta()) +
-                     (endDipole.get_pphi() - freeDipole.get_pphi())*
-                     (endDipole.get_pphi() - freeDipole.get_pphi()));
+  // double dist = sqrt((endDipole.get_theta() - freeDipole.get_theta())*
+  //                    (endDipole.get_theta() - freeDipole.get_theta()) + 
+  //                    (endDipole.get_phi() - freeDipole.get_phi())*
+  //                    (endDipole.get_phi() - freeDipole.get_phi()) +
+  //                    (endDipole.get_pr() - freeDipole.get_pr())*
+  //                    (endDipole.get_pr() - freeDipole.get_pr()) +
+  //                    (endDipole.get_ptheta() - freeDipole.get_ptheta())*
+  //                    (endDipole.get_ptheta() - freeDipole.get_ptheta()) +
+  //                    (endDipole.get_pphi() - freeDipole.get_pphi())*
+  //                    (endDipole.get_pphi() - freeDipole.get_pphi()));
+  const double dist = calculate_error(freeDipole, endDipole);
   return dist;
 }
 
@@ -242,18 +283,22 @@ Dipole doSimulation(const Dipole& freeDipole) {
 // Minimization code
 //---------------------------------------------------------------------------
 
+static int it = 0;
 double my_f (const gsl_vector* v, void* params) {
   // double x, y, z, m, n;
   Dipole toUse;
 
-  double theta = gsl_vector_get(v, 0);
-  double phi = gsl_vector_get(v, 1);
-  double ptheta = gsl_vector_get(v, 2);
-  double pphi = gsl_vector_get(v, 3);
+  double theta = 0;//gsl_vector_get(v, 0);
+  double phi = 0;//gsl_vector_get(v, 1);
+  // double ptheta = gsl_vector_get(v, 2);
+  // double pphi = gsl_vector_get(v, 3);
+  double ptheta = gsl_vector_get(v, 0);
+  double pphi = gsl_vector_get(v, 1);
 
-  double* E = (double*)params;
-  double pr2 = abs(2*(*E) + (cos(phi) + 3*cos(phi - 2*theta))/
-                       (6*1*1*1) - ptheta*ptheta/(1*1) - 10*pphi*pphi);
+  double E = *(double*)params;
+  // double pr2 = abs(2*E + (cos(phi) + 3*cos(phi - 2*theta))/
+  //                      (6*1*1*1) - ptheta*ptheta/(1*1) - 10*pphi*pphi);
+  const double pr2 = calculate_pr2(1, theta, phi, ptheta, pphi, E);
 
   if (pr2 < 0.0) {
     exit(EXIT_FAILURE);
@@ -269,54 +314,64 @@ double my_f (const gsl_vector* v, void* params) {
   toUse.set_pphi(pphi);
 
   Dipole endDipole = doSimulation(toUse);
+  // double fval = 
+  //     (theta - endDipole.get_theta())*(theta - endDipole.get_theta()) + 
+  //     (phi - endDipole.get_phi())*(phi - endDipole.get_phi()) + 
+  //     (pr - endDipole.get_pr())*(pr - endDipole.get_pr()) + 
+  //     (ptheta - endDipole.get_ptheta())*(ptheta - endDipole.get_ptheta()) +
+  //     (pphi - endDipole.get_pphi())*(pphi - endDipole.get_pphi());
 
-  return (theta - endDipole.get_theta())*(theta - endDipole.get_theta()) + 
-         (phi - endDipole.get_phi())*(phi - endDipole.get_phi()) + 
-         (pr - endDipole.get_pr())*(pr - endDipole.get_pr()) + 
-         (ptheta - endDipole.get_ptheta())*(ptheta - endDipole.get_ptheta()) +
-         (pphi - endDipole.get_pphi())*(pphi - endDipole.get_pphi());
+  const double fval = calculate_error(toUse, endDipole);
+
+  printf("%d %.7f %.7f %.3f %.3f %.3f %.3f %.3f %.3f %.14f\n",
+         it++, ptheta, pphi,
+         endDipole.get_theta(), endDipole.get_phi(),
+         endDipole.get_ptheta(), endDipole.get_pphi(),
+         endDipole.get_r(), endDipole.get_pr(), fval);
+
+  return fval;
 }
 
-struct f_params {
-  f_params(int param_, const gsl_vector* p_, double E_) {
-    param = param_;
-    p = p_;
-    // for (int i = 0; i < 4; ++i) {
-    //   params[i] = params_[i];
-    // }
-    E = E_;
-  }
-  int param;
-  // double params[4];
-  const gsl_vector* p;
-  double E;
-};
+// struct f_params {
+//   f_params(int param_, const gsl_vector* p_, double E_) {
+//     param = param_;
+//     p = p_;
+//     // for (int i = 0; i < 4; ++i) {
+//     //   params[i] = params_[i];
+//     // }
+//     E = E_;
+//   }
+//   int param;
+//   // double params[4];
+//   const gsl_vector* p;
+//   double E;
+// };
 
-double f(double x_, void* params_) {
-  f_params fparams = *((f_params*)params_);
-  gsl_vector* v = gsl_vector_alloc(4);
-  for (int i = 0; i < 4; ++i) {
-    gsl_vector_set(v, i, gsl_vector_get(fparams.p, i));
-  }
-  gsl_vector_set(v, fparams.param, x_);
-  double ret = my_f(v, &fparams.E);
-  gsl_vector_free(v);
-  return ret;
-}
+// double f(double x_, void* params_) {
+//   f_params fparams = *((f_params*)params_);
+//   gsl_vector* v = gsl_vector_alloc(4);
+//   for (int i = 0; i < 4; ++i) {
+//     gsl_vector_set(v, i, gsl_vector_get(fparams.p, i));
+//   }
+//   gsl_vector_set(v, fparams.param, x_);
+//   double ret = my_f(v, &fparams.E);
+//   gsl_vector_free(v);
+//   return ret;
+// }
 
-void my_df (const gsl_vector* v, void* params, gsl_vector* df) {
-  const double h = 0.0001;
-  const double E = *(double*)(params);
-  for (int i = 0; i < 4; ++i) {
-    f_params fparams(i, v, E);
-    gsl_function F;
-    F.function = &f;
-    F.params = &fparams;
-    double result, abserr;
-    gsl_deriv_central(&F, gsl_vector_get(v, i), h, &result, &abserr);
-    gsl_vector_set(df, i, result);
-  }
-}
+// void my_df (const gsl_vector* v, void* params, gsl_vector* df) {
+//   const double h = 0.0001;
+//   const double E = *(double*)(params);
+//   for (int i = 0; i < 4; ++i) {
+//     f_params fparams(i, v, E);
+//     gsl_function F;
+//     F.function = &f;
+//     F.params = &fparams;
+//     double result, abserr;
+//     gsl_deriv_central(&F, gsl_vector_get(v, i), h, &result, &abserr);
+//     gsl_vector_set(df, i, result);
+//   }
+// }
 
 struct Minimum {
   double ptheta;
@@ -339,31 +394,35 @@ Minimum calculate_min_impl(double ptheta, double pphi,
   gsl_multimin_function my_func;
   double size;
 
-  my_func.n = 4;
+  // my_func.n = 4;
+  my_func.n = 2;
   my_func.f = my_f;
   // -----------------------
   double param = freeDipole.get_E();
   my_func.params = &param;
   // -----------------------
 
-  x = gsl_vector_alloc(4);
-  gsl_vector_set(x, 0, freeDipole.get_theta());
-  gsl_vector_set(x, 1, freeDipole.get_phi());
-  gsl_vector_set(x, 2, freeDipole.get_ptheta());
-  gsl_vector_set(x, 3, freeDipole.get_pphi());
+  // x = gsl_vector_alloc(4);
+  x = gsl_vector_alloc(2);
+  // gsl_vector_set(x, 0, freeDipole.get_theta());
+  // gsl_vector_set(x, 1, freeDipole.get_phi());
+  // gsl_vector_set(x, 2, freeDipole.get_ptheta());
+  // gsl_vector_set(x, 3, freeDipole.get_pphi());
+  gsl_vector_set(x, 0, freeDipole.get_ptheta());
+  gsl_vector_set(x, 1, freeDipole.get_pphi());
   
 
   T = gsl_multimin_fminimizer_nmsimplex2;
-  s = gsl_multimin_fminimizer_alloc (T, 4);
+  // s = gsl_multimin_fminimizer_alloc (T, 4);
+  s = gsl_multimin_fminimizer_alloc (T, 2);
 
-  simplex_step = gsl_vector_alloc (4);
+  // simplex_step = gsl_vector_alloc (4);
+  simplex_step = gsl_vector_alloc (2);
   gsl_vector_set(simplex_step, 0, step_size);
-  gsl_vector_set(simplex_step, 1, step_size);
-  gsl_vector_set(simplex_step, 2, step_size);
-  gsl_vector_set(simplex_step, 3, step_size);
+  gsl_vector_set(simplex_step, 1, step_size*4);
+  // gsl_vector_set(simplex_step, 2, step_size);
+  // gsl_vector_set(simplex_step, 3, step_size);
   gsl_multimin_fminimizer_set(s, &my_func, x, simplex_step);
-
-  // FILE* file = fopen("minimums.txt", "w");
 
   do {
     iter++;
@@ -375,83 +434,14 @@ Minimum calculate_min_impl(double ptheta, double pphi,
       break;
 
     size = gsl_multimin_fminimizer_size(s);
-    status = gsl_multimin_test_size(size, 1e-7);
+    status = gsl_multimin_test_size(size, 1e-12);
 
     if (status == GSL_SUCCESS) {
-      /* printf ("\nMinimum found at:\n");
-      printf ("%5d %.5f %.5f %.5f %.5f %.5f %10.10f\n", iter,
-        Physics::rad2deg(gsl_vector_get (s->x, 0)),
-        Physics::rad2deg(gsl_vector_get (s->x, 1)),
-        sqrt(2*param + (cos(gsl_vector_get (s->x, 1)) + 3*cos(gsl_vector_get (s->x, 1) - 2*gsl_vector_get (s->x, 0)))/(6*1*1*1) - gsl_vector_get (s->x, 2)*gsl_vector_get (s->x, 2)/(1*1) - 10*gsl_vector_get (s->x, 3)*gsl_vector_get (s->x, 3)),
-        gsl_vector_get (s->x, 2),
-        gsl_vector_get (s->x, 3),
-        s->fval); */
     }
-
-      /* printf ("%5d %.5f %.5f %.5f %.5f %.5f %10.10f\n", iter,
-        Physics::rad2deg(gsl_vector_get (s->x, 0)),
-        Physics::rad2deg(gsl_vector_get (s->x, 1)),
-        sqrt(2*param + (cos(gsl_vector_get (s->x, 1)) + 3*cos(gsl_vector_get (s->x, 1) - 2*gsl_vector_get (s->x, 0)))/(6*1*1*1) - gsl_vector_get (s->x, 2)*gsl_vector_get (s->x, 2)/(1*1) - 10*gsl_vector_get (s->x, 3)*gsl_vector_get (s->x, 3)),
-        gsl_vector_get (s->x, 2),
-        gsl_vector_get (s->x, 3),
-        s->fval); */
-
-      double theta = Physics::rad2deg(gsl_vector_get (s->x, 0));
-      double phi = Physics::rad2deg(gsl_vector_get (s->x, 1));
-      double pr = sqrt(2*param + (cos(gsl_vector_get (s->x, 1)) + 3*cos(gsl_vector_get (s->x, 1) - 2*gsl_vector_get (s->x, 0)))/(6*1*1*1) - gsl_vector_get (s->x, 2)*gsl_vector_get (s->x, 2)/(1*1) - 10*gsl_vector_get (s->x, 3)*gsl_vector_get (s->x, 3));
-      double ptheta = gsl_vector_get (s->x, 2);
-      double pphi = gsl_vector_get (s->x, 3);
-
-      double values[5] = { theta, phi, pr, ptheta, pphi };
-
-      for (int i = 0; i < 5; i++) {
-        if (abs(values[i] - 0.0) <= 0.0001) {
-          values[i] = 0.0;
-        }
-      }
-
-      // fprintf(file, "%d %.4f %.4f %.4f %.4f %.4f %.5f\n", 
-      //     1,
-      //     values[0],
-      //     values[1],
-      //     values[2],
-      //     values[3],
-      //     values[4],
-      //     s->fval);
-
   } while (status == GSL_CONTINUE && iter < 1000);
 
-  /* double theta = Physics::rad2deg(gsl_vector_get (s->x, 0));
-  double phi = Physics::rad2deg(gsl_vector_get (s->x, 1));
-  double pr = sqrt(2*param + (cos(gsl_vector_get (s->x, 1)) + 3*cos(gsl_vector_get (s->x, 1) - 2*gsl_vector_get (s->x, 0)))/(6*1*1*1) - gsl_vector_get (s->x, 2)*gsl_vector_get (s->x, 2)/(1*1) - 10*gsl_vector_get (s->x, 3)*gsl_vector_get (s->x, 3));
-  double ptheta = gsl_vector_get (s->x, 2);
-  double pphi = gsl_vector_get (s->x, 3);
-
-  double values[5] = { theta, phi, pr, ptheta, pphi };
-
-  for (int i = 0; i < 5; i++) {
-    if (abs(values[i] - 0.0) <= 0.0001) {
-      values[i] = 0.0;
-    }
-  } */
-
-  // FILE* file = fopen("minimums.txt", "w");
-  // fprintf(file, "r, theta, phi, pr, ptheta, pphi, fval\n");
-  /* fprintf(file, "%d %.4f %.4f %.4f %.4f %.4f %.5f\n", 
-          1,
-          values[0],
-          values[1],
-          values[2],
-          values[3],
-          values[4],
-          s->fval); */
-  // fclose(file);
-  // file = fopen("iters.txt", "w");
-  // fprintf(file, "%d\n", iter);
-  // fclose(file);
-
   Minimum ret = {
-    gsl_vector_get(s->x, 2), gsl_vector_get(s->x, 3), s->fval };
+    gsl_vector_get(s->x, 0), gsl_vector_get(s->x, 1), s->fval };
 
   gsl_multimin_fminimizer_free (s);
   gsl_vector_free (x);
