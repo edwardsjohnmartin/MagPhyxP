@@ -1,0 +1,27 @@
+<!-- CS-5890 Homework 1   -->
+<!-- John Edwards         -->
+<!-- john.edwards@usu.edu -->
+<!-- A00791824            -->
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>CS 5890</title>
+        <script src="https://d3js.org/d3.v5.min.js"></script>
+        <style>
+          rect.bar {
+          /*fill: #9f009f;*/
+            stroke-width: 0;
+          }
+        </style>
+    </head>
+    <body id="body" onload="init()">
+      Energy: <input type="range" min="0" max="22" value="0" class="slider" id="energySlider" oninput="energyChanged(this.value)"><text id="energyLabel"></text>
+      <br>
+      <svg width="300" height="300" id="svg"></svg>
+      <br>
+      <svg width="600" height="600" id="svg2"></svg>
+      <script src="main.js"></script>
+    </body>
+</html>
