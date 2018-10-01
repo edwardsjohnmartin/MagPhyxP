@@ -285,19 +285,14 @@ Dipole doSimulation(const Dipole& freeDipole) {
 
 static int it = 0;
 double my_f (const gsl_vector* v, void* params) {
-  // double x, y, z, m, n;
   Dipole toUse;
 
-  double theta = 0;//gsl_vector_get(v, 0);
-  double phi = 0;//gsl_vector_get(v, 1);
-  // double ptheta = gsl_vector_get(v, 2);
-  // double pphi = gsl_vector_get(v, 3);
+  double theta = 0;
+  double phi = 0;
   double ptheta = gsl_vector_get(v, 0);
   double pphi = gsl_vector_get(v, 1);
 
   double E = *(double*)params;
-  // double pr2 = abs(2*E + (cos(phi) + 3*cos(phi - 2*theta))/
-  //                      (6*1*1*1) - ptheta*ptheta/(1*1) - 10*pphi*pphi);
   const double pr2 = calculate_pr2(1, theta, phi, ptheta, pphi, E);
 
   if (pr2 < 0.0) {
@@ -314,64 +309,9 @@ double my_f (const gsl_vector* v, void* params) {
   toUse.set_pphi(pphi);
 
   Dipole endDipole = doSimulation(toUse);
-  // double fval = 
-  //     (theta - endDipole.get_theta())*(theta - endDipole.get_theta()) + 
-  //     (phi - endDipole.get_phi())*(phi - endDipole.get_phi()) + 
-  //     (pr - endDipole.get_pr())*(pr - endDipole.get_pr()) + 
-  //     (ptheta - endDipole.get_ptheta())*(ptheta - endDipole.get_ptheta()) +
-  //     (pphi - endDipole.get_pphi())*(pphi - endDipole.get_pphi());
-
   const double fval = calculate_error(toUse, endDipole);
-
-  // printf("%d %.7f %.7f %.3f %.3f %.3f %.3f %.3f %.3f %.14f\n",
-  //        it++, ptheta, pphi,
-  //        endDipole.get_theta(), endDipole.get_phi(),
-  //        endDipole.get_ptheta(), endDipole.get_pphi(),
-  //        endDipole.get_r(), endDipole.get_pr(), fval);
-
   return fval;
 }
-
-// struct f_params {
-//   f_params(int param_, const gsl_vector* p_, double E_) {
-//     param = param_;
-//     p = p_;
-//     // for (int i = 0; i < 4; ++i) {
-//     //   params[i] = params_[i];
-//     // }
-//     E = E_;
-//   }
-//   int param;
-//   // double params[4];
-//   const gsl_vector* p;
-//   double E;
-// };
-
-// double f(double x_, void* params_) {
-//   f_params fparams = *((f_params*)params_);
-//   gsl_vector* v = gsl_vector_alloc(4);
-//   for (int i = 0; i < 4; ++i) {
-//     gsl_vector_set(v, i, gsl_vector_get(fparams.p, i));
-//   }
-//   gsl_vector_set(v, fparams.param, x_);
-//   double ret = my_f(v, &fparams.E);
-//   gsl_vector_free(v);
-//   return ret;
-// }
-
-// void my_df (const gsl_vector* v, void* params, gsl_vector* df) {
-//   const double h = 0.0001;
-//   const double E = *(double*)(params);
-//   for (int i = 0; i < 4; ++i) {
-//     f_params fparams(i, v, E);
-//     gsl_function F;
-//     F.function = &f;
-//     F.params = &fparams;
-//     double result, abserr;
-//     gsl_deriv_central(&F, gsl_vector_get(v, i), h, &result, &abserr);
-//     gsl_vector_set(df, i, result);
-//   }
-// }
 
 struct Minimum {
   double ptheta;
@@ -404,31 +344,21 @@ Minimum calculate_min_impl(double ptheta, double pphi,
 
   // x = gsl_vector_alloc(4);
   x = gsl_vector_alloc(2);
-  // gsl_vector_set(x, 0, freeDipole.get_theta());
-  // gsl_vector_set(x, 1, freeDipole.get_phi());
-  // gsl_vector_set(x, 2, freeDipole.get_ptheta());
-  // gsl_vector_set(x, 3, freeDipole.get_pphi());
   gsl_vector_set(x, 0, freeDipole.get_ptheta());
   gsl_vector_set(x, 1, freeDipole.get_pphi());
   
 
   T = gsl_multimin_fminimizer_nmsimplex2;
-  // s = gsl_multimin_fminimizer_alloc (T, 4);
   s = gsl_multimin_fminimizer_alloc (T, 2);
 
-  // simplex_step = gsl_vector_alloc (4);
   simplex_step = gsl_vector_alloc (2);
   gsl_vector_set(simplex_step, 0, step_size);
   gsl_vector_set(simplex_step, 1, step_size*4);
-  // gsl_vector_set(simplex_step, 2, step_size);
-  // gsl_vector_set(simplex_step, 3, step_size);
   gsl_multimin_fminimizer_set(s, &my_func, x, simplex_step);
 
   do {
     iter++;
     status = gsl_multimin_fminimizer_iterate(s);
-
-    // printf ("error: %s\n", gsl_strerror (status));
 
     if (status)
       break;
