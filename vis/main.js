@@ -12,6 +12,12 @@ svg = d3.select("#svg");
 //   .attr("height", 300);
 svg2 = d3.select("#svg2");
 
+function calculate_pr(r, theta, phi, ptheta, pphi, energy) {
+  let pr2 = Math.abs(2*energy + (Math.cos(phi)+3*Math.cos(phi-2*theta))/
+                         (6*r*r*r)-ptheta*ptheta/(r*r)-10*pphi*pphi);
+  return Math.sqrt(pr2);
+}
+
 // let xScale = d3.scaleBand()
 //   .domain(dataset)
 //   .range([0, 300])
@@ -107,6 +113,7 @@ function updateVis2() {
         let minimum = {
           numBounces : numBounces,
           energy : energy,
+          pr : calculate_pr(1, 0, 0, m.ptheta, m.pphi, energy),
           ptheta : m.ptheta,
           pphi : m.pphi
         };
@@ -139,6 +146,11 @@ function updateVis2() {
     svg2.selectAll("circle")
     .data(minima)
     .enter()
+    .append("a")
+    .attr("xlink:href", d =>
+          // `http://localhost:8082/?initparams=1,0,0,${d.pr},${d.ptheta},${d.pphi}`)
+          `http://edwardsjohnmartin.github.io/MagPhyx/?initparams=1,0,0,${d.pr},${d.ptheta},${d.pphi}`)
+    .attr("target", "_magphyx")
     .append("circle")
     .attr("cx", function(d) { return eScale(d.energy); })
     .attr("cy", function(d) { return yScale(d.pphi); })
