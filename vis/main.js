@@ -145,7 +145,7 @@ function updateVis2() {
     .attr("title", d => `(${d.ptheta}, ${d.pphi})`)
     .attr("fill", d => googleColors[d.numBounces])
     .attr("stroke", 'none')
-    .attr("r", d => (16-d.numBounces))
+    .attr("r", d => (16-d.numBounces*2))
     .append("title")
     .text(d => `bounces = ${d.numBounces}`)
   ;
