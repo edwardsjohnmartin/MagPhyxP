@@ -51,7 +51,7 @@ let data;
 
 function updateVis() {
   // console.log(data);
-  console.log(data[6].energies[energyIndex]);
+  // console.log(data[6].energies[energyIndex]);
   let minima = data[6].energies[energyIndex].minima;
 
   let xaccess = d => d.ptheta;
@@ -95,12 +95,12 @@ function energyChanged(i) {
 }
 
 function updateVis2() {
-  // console.log(data);
+  console.log(data);
 
   minima = [];
   data.forEach(function(d) {
     let numBounces = d.numBounces;
-    console.log(numBounces);
+    // console.log(numBounces);
     d.energies.forEach(function(e) {
       let energy = e.energy;
       e.minima.forEach(function(m) {
@@ -115,14 +115,16 @@ function updateVis2() {
     });
   });
 
-  console.log(minima);
+  // Render in reverse order
+
+  // console.log(minima);
 
   // let xaccess = d => d.ptheta;
   // let yaccess = d => d.pphi;
 
   let eScale = d3.scaleLinear()
     .domain([-0.33, -0.11])
-    .range([20, 480]);
+    .range([20, 680]);
   // let xScale = d3.scaleLinear()
   //   // .domain([d3.min(minima, xaccess), d3.max(minima, xaccess)])
   //   .domain([-0.3, 0.3])
@@ -130,7 +132,7 @@ function updateVis2() {
   let yScale = d3.scaleLinear()
     // .domain([d3.min(minima, yaccess), d3.max(minima, yaccess)])
     .domain([-0.3, 0.3])
-    .range([20, 480]);
+    .range([20, 680]);
 
   let color = d3.schemeCategory10;
   let googleColors = ["#3366cc", "#dc3912", "#ff9900", "#109618", "#990099", "#0099c6", "#dd4477", "#66aa00", "#b82e2e", "#316395", "#994499", "#22aa99", "#aaaa11", "#6633cc", "#e67300", "#8b0707", "#651067", "#329262", "#5574a6", "#3b3eac"];
@@ -141,18 +143,18 @@ function updateVis2() {
     .attr("cx", function(d) { return eScale(d.energy); })
     .attr("cy", function(d) { return yScale(d.pphi); })
     .attr("title", d => `(${d.ptheta}, ${d.pphi})`)
-    // .attr("fill", d => color[-(d.energy*100) % 10])
-    // .attr("fill", d => color[d.numBounces])
     .attr("fill", d => googleColors[d.numBounces])
     .attr("stroke", 'none')
-    .attr("r", 3)
+    .attr("r", d => (16-d.numBounces))
+    .append("title")
+    .text(d => `bounces = ${d.numBounces}`)
   ;
 
 }
 
 function init() {
   // Load CSV file
-  console.log('loading');
+  // console.log('loading');
   d3.json("output.json")
     .then(function(d) {
       data = d;
