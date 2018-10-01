@@ -323,11 +323,11 @@ double my_f (const gsl_vector* v, void* params) {
 
   const double fval = calculate_error(toUse, endDipole);
 
-  printf("%d %.7f %.7f %.3f %.3f %.3f %.3f %.3f %.3f %.14f\n",
-         it++, ptheta, pphi,
-         endDipole.get_theta(), endDipole.get_phi(),
-         endDipole.get_ptheta(), endDipole.get_pphi(),
-         endDipole.get_r(), endDipole.get_pr(), fval);
+  // printf("%d %.7f %.7f %.3f %.3f %.3f %.3f %.3f %.3f %.14f\n",
+  //        it++, ptheta, pphi,
+  //        endDipole.get_theta(), endDipole.get_phi(),
+  //        endDipole.get_ptheta(), endDipole.get_pphi(),
+  //        endDipole.get_r(), endDipole.get_pr(), fval);
 
   return fval;
 }

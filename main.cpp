@@ -222,7 +222,7 @@ int main(int argc, char** argv) {
         period_impl(ptheta, pphi-h, 4, -0.1));
 
   int num_events = 4;
-  double energy = -0.1;
+  double energy = -0.33;
   Minimum min = calculate_min_impl(ptheta, pphi, num_events, energy, 0.00001);
   printf("ptheta: %.12f pphi: %.12f\n", ptheta, pphi);
   printf("ptheta: %.18f pphi: %.18f fval: %.18f\n", min.ptheta, min.pphi, min.f);
