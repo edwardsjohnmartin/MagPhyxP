@@ -89,7 +89,10 @@ double calculate_error(const Dipole& freeDipole, const Dipole& endDipole) {
 double period_impl(double ptheta, double pphi, int num_events, double energy) {
   o.numEvents = num_events;
   Dipole freeDipole = create_dipole(ptheta, pphi, energy);
+  // printf("a %f %f %f\n", ptheta, pphi, energy);
+  
   Dipole endDipole = doSimulation(freeDipole);
+  // printf("b\n");
   // double dist = sqrt((endDipole.get_theta() - freeDipole.get_theta())*
   //                    (endDipole.get_theta() - freeDipole.get_theta()) + 
   //                    (endDipole.get_phi() - freeDipole.get_phi())*
@@ -313,14 +316,49 @@ double my_f (const gsl_vector* v, void* params) {
   return fval;
 }
 
+double my_f_energy(const gsl_vector* v, void* params) {
+  Dipole toUse;
+
+  double theta = 0;
+  double phi = 0;
+  double ptheta = gsl_vector_get(v, 0);
+  // double pphi = gsl_vector_get(v, 1);
+  // double ptheta = *(double*)params;
+  double pphi = *(double*)params;
+
+  // double E = *(double*)params;
+  double E = gsl_vector_get(v, 1);
+  const double pr2 = calculate_pr2(1, theta, phi, ptheta, pphi, E);
+
+  if (pr2 < 0.0) {
+    exit(EXIT_FAILURE);
+  }
+
+  double pr = sqrt(pr2);
+
+  toUse.set_r(1);
+  toUse.set_theta(theta);
+  toUse.set_phi(phi);
+  toUse.set_pr(pr);
+  toUse.set_ptheta(ptheta);
+  toUse.set_pphi(pphi);
+
+  Dipole endDipole = doSimulation(toUse);
+  const double fval = calculate_error(toUse, endDipole);
+  return fval;
+}
+
 struct Minimum {
   double ptheta;
   double pphi;
+  double energy;
   double f;
 };
 
 Minimum calculate_min_impl(double ptheta, double pphi,
-                     int num_events, double energy, double step_size) {
+                           int num_events, double energy,
+                           double step_size, int vary) {
+
   o.numEvents = num_events;
   Dipole freeDipole = create_dipole(ptheta, pphi, energy);
   unsigned int iter = 0;
@@ -334,26 +372,42 @@ Minimum calculate_min_impl(double ptheta, double pphi,
   gsl_multimin_function my_func;
   double size;
 
+  double param;
   // my_func.n = 4;
-  my_func.n = 2;
-  my_func.f = my_f;
+  if (vary == VARY_PTHETA_PPHI) {
+    my_func.f = my_f;
+    my_func.n = 2;
+    param = freeDipole.get_E();
+
+    x = gsl_vector_alloc(2);
+    gsl_vector_set(x, 0, freeDipole.get_ptheta());
+    gsl_vector_set(x, 1, freeDipole.get_pphi());
+
+    T = gsl_multimin_fminimizer_nmsimplex2;
+    s = gsl_multimin_fminimizer_alloc (T, 2);
+    simplex_step = gsl_vector_alloc (2);
+    gsl_vector_set(simplex_step, 0, step_size);
+    gsl_vector_set(simplex_step, 1, step_size*4);
+  } else if (vary == VARY_PTHETA_ENERGY) {
+    my_func.f = my_f_energy;
+    my_func.n = 2;
+    param = pphi;
+
+    x = gsl_vector_alloc(2);
+    gsl_vector_set(x, 0, freeDipole.get_ptheta());
+    gsl_vector_set(x, 1, energy);
+
+    T = gsl_multimin_fminimizer_nmsimplex2;
+    s = gsl_multimin_fminimizer_alloc (T, 2);
+    simplex_step = gsl_vector_alloc (2);
+    gsl_vector_set(simplex_step, 0, step_size);
+    gsl_vector_set(simplex_step, 1, step_size*4);
+  }
+
   // -----------------------
-  double param = freeDipole.get_E();
   my_func.params = &param;
   // -----------------------
 
-  // x = gsl_vector_alloc(4);
-  x = gsl_vector_alloc(2);
-  gsl_vector_set(x, 0, freeDipole.get_ptheta());
-  gsl_vector_set(x, 1, freeDipole.get_pphi());
-  
-
-  T = gsl_multimin_fminimizer_nmsimplex2;
-  s = gsl_multimin_fminimizer_alloc (T, 2);
-
-  simplex_step = gsl_vector_alloc (2);
-  gsl_vector_set(simplex_step, 0, step_size);
-  gsl_vector_set(simplex_step, 1, step_size*4);
   gsl_multimin_fminimizer_set(s, &my_func, x, simplex_step);
 
   do {
@@ -370,8 +424,23 @@ Minimum calculate_min_impl(double ptheta, double pphi,
     }
   } while (status == GSL_CONTINUE && iter < 1000);
 
-  Minimum ret = {
-    gsl_vector_get(s->x, 0), gsl_vector_get(s->x, 1), s->fval };
+  printf("num iterations = %d\n", iter);
+  // Minimum ret = { gsl_vector_get(s->x, 0),
+  //                 gsl_vector_get(s->x, 1),
+  //                 // energy,
+  //                 s->fval };
+  Minimum ret;
+  if (vary == VARY_PTHETA_PPHI) {
+    ret = { gsl_vector_get(s->x, 0),
+            gsl_vector_get(s->x, 1),
+            energy,
+            s->fval };
+  } else if (vary == VARY_PTHETA_ENERGY) {
+    ret = { gsl_vector_get(s->x, 0),
+            pphi,
+            gsl_vector_get(s->x, 1),
+            s->fval };
+  }
 
   gsl_multimin_fminimizer_free (s);
   gsl_vector_free (x);

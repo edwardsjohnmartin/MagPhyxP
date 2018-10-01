@@ -30,6 +30,7 @@ const double default_eps = 1e-10;
 struct Minimum {
   double ptheta;
   double pphi;
+  double energy;
   double f;
 };
 
@@ -37,7 +38,7 @@ struct Minimum {
 // void calculateMin (Dipole& freeDipole);
 // double my_f (const gsl_vector* v, void* params);
 Minimum calculate_min_impl(double ptheta, double pphi,
-                     int num_events, double energy, double step_size);
+                     int num_events, double energy, double step_size, int vary);
 double period_impl(double ptheta, double pphi, int num_events, double energy);
 
 void printUsage() {
@@ -156,6 +157,16 @@ void printUsage() {
 //   }
 // }
 
+
+
+
+
+
+
+//------------------------------------------------------------
+// Command-line usage:
+//    
+//------------------------------------------------------------
 int main(int argc, char** argv) {
   // double energy_ = -0.1;
   // double num_bounces_ = 4;
@@ -223,11 +234,21 @@ int main(int argc, char** argv) {
 
   int num_events = 4;
   double energy = -0.33;
-  Minimum min = calculate_min_impl(ptheta, pphi, num_events, energy, 0.00001);
+  Minimum min = calculate_min_impl(ptheta, pphi, num_events, energy, 0.00001,
+                                   VARY_PTHETA_PPHI);
   printf("ptheta: %.12f pphi: %.12f\n", ptheta, pphi);
   printf("ptheta: %.18f pphi: %.18f fval: %.18f\n", min.ptheta, min.pphi, min.f);
 
   printf("%.18f %.18f\n", min.ptheta, period_impl(min.ptheta, min.pphi, num_events, energy));
 
+
+
+  printf("Testing energy varying minimization\n");
+  num_events = 5;
+  energy = -0.21;
+  min = calculate_min_impl(0.000001, 0.000001,
+                           num_events, energy, 0.00001,
+                           VARY_PTHETA_ENERGY);
+  printf("%f %f %.12f %f\n", min.ptheta, min.pphi, min.energy, min.f);
   return 0;
 }

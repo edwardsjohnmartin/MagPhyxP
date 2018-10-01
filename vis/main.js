@@ -147,7 +147,7 @@ function updateVis2() {
     .attr("stroke", 'none')
     .attr("r", d => (16-d.numBounces*2))
     .append("title")
-    .text(d => `bounces = ${d.numBounces}`)
+    .text(d => `bounces = ${d.numBounces} energy = ${d.energy}`)
   ;
 
 }
