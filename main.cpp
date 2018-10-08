@@ -221,8 +221,10 @@ int main(int argc, char** argv) {
   // double pphi = 0.17;
   // double ptheta = -0.15;
   // double pphi = 0.14;
-  double ptheta = -0.2107;
-  double pphi = 0.1345;
+  // double ptheta = -0.2107;
+  // double pphi = 0.1345;
+  double ptheta = -0.5223332269729719;
+  double pphi = 0.055058756494009986;
 
   double h = 0.005;
   printf("%.4f %.4f %.4f %.4f %.4f\n",
@@ -232,8 +234,10 @@ int main(int argc, char** argv) {
         period_impl(ptheta, pphi+h, 4, -0.1),
         period_impl(ptheta, pphi-h, 4, -0.1));
 
-  int num_events = 4;
-  double energy = -0.33;
+  int num_events = 8;
+  // double energy = -0.33;
+  double energy = -0.14;
+
   Minimum min = calculate_min_impl(ptheta, pphi, num_events, energy, 0.00001,
                                    VARY_PTHETA_PPHI);
   printf("ptheta: %.12f pphi: %.12f\n", ptheta, pphi);
@@ -243,12 +247,12 @@ int main(int argc, char** argv) {
 
 
 
-  printf("Testing energy varying minimization\n");
-  num_events = 5;
-  energy = -0.21;
-  min = calculate_min_impl(0.000001, 0.000001,
-                           num_events, energy, 0.00001,
-                           VARY_PTHETA_ENERGY);
-  printf("%f %f %.12f %f\n", min.ptheta, min.pphi, min.energy, min.f);
+  // printf("Testing energy varying minimization\n");
+  // num_events = 5;
+  // energy = -0.21;
+  // min = calculate_min_impl(0.000001, 0.000001,
+  //                          num_events, energy, 0.00001,
+  //                          VARY_PTHETA_ENERGY);
+  // printf("%f %f %.12f %f\n", min.ptheta, min.pphi, min.energy, min.f);
   return 0;
 }

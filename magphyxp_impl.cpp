@@ -412,6 +412,7 @@ Minimum calculate_min_impl(double ptheta, double pphi,
 
   do {
     iter++;
+
     status = gsl_multimin_fminimizer_iterate(s);
 
     if (status)
@@ -420,11 +421,12 @@ Minimum calculate_min_impl(double ptheta, double pphi,
     size = gsl_multimin_fminimizer_size(s);
     status = gsl_multimin_test_size(size, 1e-12);
 
+    // cout << "size = " << size << " status = " << status << endl;
     if (status == GSL_SUCCESS) {
     }
-  } while (status == GSL_CONTINUE && iter < 1000);
+  } while (status == GSL_CONTINUE && iter < 1000 && size < 0.01);
 
-  printf("num iterations = %d\n", iter);
+  printf("num iterations = %d\nsize = %f\n", iter, size);
   // Minimum ret = { gsl_vector_get(s->x, 0),
   //                 gsl_vector_get(s->x, 1),
   //                 // energy,
