@@ -426,7 +426,7 @@ Minimum calculate_min_impl(double ptheta, double pphi,
     }
   } while (status == GSL_CONTINUE && iter < 1000 && size < 0.01);
 
-  printf("num iterations = %d\nsize = %f\n", iter, size);
+  // printf("num iterations = %d\nsize = %f\n", iter, size);
   // Minimum ret = { gsl_vector_get(s->x, 0),
   //                 gsl_vector_get(s->x, 1),
   //                 // energy,
