@@ -17,7 +17,20 @@
         </style>
     </head>
     <body id="body" onload="init()">
+      <div>
+      <select id="dataset" onchange="datasetChanged()">
+        <option value="dataset1">Dataset1</option>
+        <option value="dataset2" selected="selected">Dataset2</option>
+      </select>
+      <br>Num bounces filter:
+      <select id="numBounces" onchange="filterChanged()">
+        <option value="all">all</option>
+      </select>
+      </div>
+
       <svg width="800" height="800" id="svg2"></svg>
+      <br>
+      <svg width="800" height="800" id="svg3"></svg>
       <br>
 
       Energy: <input type="range" min="0" max="22" value="0" class="slider" id="energySlider" oninput="energyChanged(this.value)"><text id="energyLabel"></text>
