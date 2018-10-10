@@ -14,6 +14,7 @@
 #include "./Event.h"
 #include "./Options.h"
 // #include "./Stepper.h"
+#include "./Minimum.h"
 
 using namespace std;
 
@@ -27,12 +28,13 @@ const double default_eps = 1e-10;
 // Dipole doSimulation(const Dipole& freeDipole, Event& event);
 // Dipole doSimulation(const Dipole& freeDipole);
 
-struct Minimum {
-  double ptheta;
-  double pphi;
-  double energy;
-  double f;
-};
+// struct Minimum {
+//   double ptheta;
+//   double pphi;
+//   double energy;
+//   double f;
+//   double t;
+// };
 
 // Minimization functions
 // void calculateMin (Dipole& freeDipole);

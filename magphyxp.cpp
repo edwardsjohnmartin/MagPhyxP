@@ -1,9 +1,10 @@
-struct Minimum {
-  double ptheta;
-  double pphi;
-  double energy;
-  double f;
-};
+#include "./Minimum.h"
+// struct Minimum {
+//   double ptheta;
+//   double pphi;
+//   double energy;
+//   double f;
+// };
 
 // #define VARY_PTHETA_PPHI 0
 // #define VARY_PTHETA_ENERGY 1

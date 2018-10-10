@@ -8,6 +8,7 @@ struct Minimum {
   double pphi;
   double energy;
   double f;
+  double t;
 };
 
 extern Minimum calculate_min(double ptheta, double pphi, int num_events, double energy, double step_size, int vary);
@@ -19,5 +20,6 @@ struct Minimum {
   double pphi;
   double energy;
   double f;
+  double t;
 };
  extern Minimum calculate_min(double ptheta, double pphi, int num_events, double energy, double step_size, int vary);

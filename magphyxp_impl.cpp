@@ -17,6 +17,7 @@
 #include "./Event.h"
 #include "./Options.h"
 #include "./Stepper.h"
+#include "./Minimum.h"
 
 using namespace std;
  
@@ -28,7 +29,7 @@ const double default_eps = 1e-10;
 // Global Options object. Declared in Options.h.
 Options o(default_n, default_h, default_eps, default_dynamics);
 Dipole doSimulation(const Dipole& freeDipole, Event& event);
-Dipole doSimulation(const Dipole& freeDipole);
+Dipole doSimulation(const Dipole& freeDipole, double* t);
 
 double calculate_pr2(
     double r, double theta, double phi, double ptheta, double pphi,
@@ -91,7 +92,7 @@ double period_impl(double ptheta, double pphi, int num_events, double energy) {
   Dipole freeDipole = create_dipole(ptheta, pphi, energy);
   // printf("a %f %f %f\n", ptheta, pphi, energy);
   
-  Dipole endDipole = doSimulation(freeDipole);
+  Dipole endDipole = doSimulation(freeDipole, 0);
   // printf("b\n");
   // double dist = sqrt((endDipole.get_theta() - freeDipole.get_theta())*
   //                    (endDipole.get_theta() - freeDipole.get_theta()) + 
@@ -225,7 +226,7 @@ Dipole doSimulation(const Dipole& freeDipole, Event& event) {
   return freeDipole;
 }
 
-Dipole doSimulation(const Dipole& freeDipole) {
+Dipole doSimulation(const Dipole& freeDipole, double* t_out) {
   const double h_ = o.h;
   const int numEvents = o.numEvents;
   const int numSteps = o.numSteps;
@@ -278,6 +279,10 @@ Dipole doSimulation(const Dipole& freeDipole) {
   }
 
   // printf("m: %d\n", m);
+  // cout << "stepper.t = " << stepper.t << endl;
+  if (t_out) {
+    *t_out = stepper.t;
+  }
 
   return toReturn;
 }
@@ -285,6 +290,11 @@ Dipole doSimulation(const Dipole& freeDipole) {
 //---------------------------------------------------------------------------
 // Minimization code
 //---------------------------------------------------------------------------
+
+struct Params {
+  double value;
+  double t;
+};
 
 static int it = 0;
 double my_f (const gsl_vector* v, void* params) {
@@ -295,7 +305,8 @@ double my_f (const gsl_vector* v, void* params) {
   double ptheta = gsl_vector_get(v, 0);
   double pphi = gsl_vector_get(v, 1);
 
-  double E = *(double*)params;
+  // double E = *(double*)params;
+  double E = ((Params*)params)->value;
   const double pr2 = calculate_pr2(1, theta, phi, ptheta, pphi, E);
 
   if (pr2 < 0.0) {
@@ -311,7 +322,11 @@ double my_f (const gsl_vector* v, void* params) {
   toUse.set_ptheta(ptheta);
   toUse.set_pphi(pphi);
 
-  Dipole endDipole = doSimulation(toUse);
+  // Dipole endDipole = doSimulation(toUse, 0);
+  double t_val;
+  Dipole endDipole = doSimulation(toUse, &t_val);
+  ((Params*)params)->t = t_val;
+
   const double fval = calculate_error(toUse, endDipole);
   return fval;
 }
@@ -324,7 +339,8 @@ double my_f_energy(const gsl_vector* v, void* params) {
   double ptheta = gsl_vector_get(v, 0);
   // double pphi = gsl_vector_get(v, 1);
   // double ptheta = *(double*)params;
-  double pphi = *(double*)params;
+  // double pphi = *(double*)params;
+  double pphi = ((Params*)params)->value;
 
   // double E = *(double*)params;
   double E = gsl_vector_get(v, 1);
@@ -343,17 +359,12 @@ double my_f_energy(const gsl_vector* v, void* params) {
   toUse.set_ptheta(ptheta);
   toUse.set_pphi(pphi);
 
-  Dipole endDipole = doSimulation(toUse);
+  double t_val;
+  Dipole endDipole = doSimulation(toUse, &t_val);
+  ((Params*)params)->t = t_val;
   const double fval = calculate_error(toUse, endDipole);
   return fval;
 }
-
-struct Minimum {
-  double ptheta;
-  double pphi;
-  double energy;
-  double f;
-};
 
 Minimum calculate_min_impl(double ptheta, double pphi,
                            int num_events, double energy,
@@ -372,12 +383,14 @@ Minimum calculate_min_impl(double ptheta, double pphi,
   gsl_multimin_function my_func;
   double size;
 
-  double param;
+  // double param;
+  Params params;
   // my_func.n = 4;
   if (vary == VARY_PTHETA_PPHI) {
     my_func.f = my_f;
     my_func.n = 2;
-    param = freeDipole.get_E();
+    // param = freeDipole.get_E();
+    params.value = freeDipole.get_E();
 
     x = gsl_vector_alloc(2);
     gsl_vector_set(x, 0, freeDipole.get_ptheta());
@@ -391,7 +404,8 @@ Minimum calculate_min_impl(double ptheta, double pphi,
   } else if (vary == VARY_PTHETA_ENERGY) {
     my_func.f = my_f_energy;
     my_func.n = 2;
-    param = pphi;
+    // param = pphi;
+    params.value = pphi;
 
     x = gsl_vector_alloc(2);
     gsl_vector_set(x, 0, freeDipole.get_ptheta());
@@ -405,7 +419,8 @@ Minimum calculate_min_impl(double ptheta, double pphi,
   }
 
   // -----------------------
-  my_func.params = &param;
+  // my_func.params = &param;
+  my_func.params = &params;
   // -----------------------
 
   gsl_multimin_fminimizer_set(s, &my_func, x, simplex_step);
@@ -431,17 +446,22 @@ Minimum calculate_min_impl(double ptheta, double pphi,
   //                 gsl_vector_get(s->x, 1),
   //                 // energy,
   //                 s->fval };
+  cout << "t = " << params.t << endl;
   Minimum ret;
   if (vary == VARY_PTHETA_PPHI) {
     ret = { gsl_vector_get(s->x, 0),
             gsl_vector_get(s->x, 1),
             energy,
-            s->fval };
+            s->fval,
+            params.t
+    };
   } else if (vary == VARY_PTHETA_ENERGY) {
     ret = { gsl_vector_get(s->x, 0),
             pphi,
             gsl_vector_get(s->x, 1),
-            s->fval };
+            s->fval,
+            params.t
+    };
   }
 
   gsl_multimin_fminimizer_free (s);

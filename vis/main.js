@@ -24,7 +24,8 @@ function updateVis() {
 
   // console.log(data);
   // console.log(data[6].energies[energyIndex]);
-  let minima = data[6].energies[energyIndex].minima;
+  // let minima = data[6].energies[energyIndex].minima;
+  let minima = data[0].energies[energyIndex].minima;
 
   let xaccess = d => d.ptheta;
   let yaccess = d => d.pphi;
@@ -111,13 +112,13 @@ function updateVis2() {
     .append("circle")
     .attr("cx", function(d) { return eScale(d.energy); })
     .attr("cy", function(d) { return yScale(d.pphi); })
-    .attr("title", d => `(${d.ptheta}, ${d.pphi})`)
+    // .attr("title", d => `(${d.ptheta}, ${d.pphi})`)
     .attr("fill", d => googleColors[d.numBounces])
     .attr("stroke", 'none')
     .attr("r", 3)
     .append("title")
     .text(d => `bounces = ${d.numBounces} energy = ${d.energy}\n` +
-          `ptheta = ${d.ptheta} pphi = ${d.pphi}`)
+          `ptheta = ${d.ptheta} pphi = ${d.pphi} t = ${d.t}`)
   ;
 }
 
@@ -170,7 +171,7 @@ function updateVis3() {
     .attr("r", 5)
     .append("title")
     .text(d => `bounces = ${d.numBounces} energy = ${d.energy}\n` +
-          `ptheta = ${d.ptheta} pphi = ${d.pphi}`)
+          `ptheta = ${d.ptheta} pphi = ${d.pphi} t = ${d.t}`)
   ;
 }
 
@@ -200,7 +201,8 @@ function updateDataset() {
           energy : energy,
           pr : calculate_pr(1, 0, 0, m.ptheta, m.pphi, energy),
           ptheta : m.ptheta,
-          pphi : m.pphi
+          pphi : m.pphi,
+          t : m.t
         };
         minima.push(minimum);
       });
@@ -246,6 +248,7 @@ function datasetChanged() {
   }
   d3.json(dataset)
     .then(function(d) {
+      console.log(d);
       data = d;
       updateDataset();
       updateVis();

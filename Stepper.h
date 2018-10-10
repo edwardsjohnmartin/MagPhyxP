@@ -60,6 +60,7 @@ class Stepper {
   void undo() {
     d = d0;
     // t = t0;
+    t = t0;
     h = h0;
     reset();
   }

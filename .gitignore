@@ -1,1 +1,9 @@
 release
+.DS_Store
+.ipynb_checkpoints
+MagPhyxP_wrap.cxx
+__pycache__
+_magphyxp.cpython-36m-darwin.so
+build
+magphyxp.py
+minima.py
