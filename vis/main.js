@@ -16,47 +16,47 @@ let data;
 let filterValue = FILTER_ALL;
 
 function updateVis() {
-  svg = d3.select("#svg");
+  // svg = d3.select("#svg");
   svg2 = d3.select("#svg2");
 
-  svg.selectAll('*').remove();
+  // svg.selectAll('*').remove();
   svg2.selectAll('*').remove();
 
-  // console.log(data);
-  // console.log(data[6].energies[energyIndex]);
-  // let minima = data[6].energies[energyIndex].minima;
-  let minima = data[0].energies[energyIndex].minima;
+  // // console.log(data);
+  // // console.log(data[6].energies[energyIndex]);
+  // // let minima = data[6].energies[energyIndex].minima;
+  // let minima = data[0].energies[energyIndex].minima;
 
-  let xaccess = d => d.ptheta;
-  let yaccess = d => d.pphi;
+  // let xaccess = d => d.ptheta;
+  // let yaccess = d => d.pphi;
 
-  let xScale = d3.scaleLinear()
-    // .domain([d3.min(minima, xaccess), d3.max(minima, xaccess)])
-    .domain([-0.3, 0.3])
-    .range([20, 180]);
-  let yScale = d3.scaleLinear()
-    // .domain([d3.min(minima, yaccess), d3.max(minima, yaccess)])
-    .domain([-0.3, 0.3])
-    .range([20, 180]);
+  // let xScale = d3.scaleLinear()
+  //   // .domain([d3.min(minima, xaccess), d3.max(minima, xaccess)])
+  //   .domain([-0.3, 0.3])
+  //   .range([20, 180]);
+  // let yScale = d3.scaleLinear()
+  //   // .domain([d3.min(minima, yaccess), d3.max(minima, yaccess)])
+  //   .domain([-0.3, 0.3])
+  //   .range([20, 180]);
 
-  let update = function(s) {
-    s
-    .attr("cx", function(d) { return xScale(d.ptheta); })
-    .attr("cy", function(d) { return yScale(d.pphi); })
-    .attr("title", d => `(${d.ptheta}, ${d.pphi})`)
-  };
+  // let update = function(s) {
+  //   s
+  //   .attr("cx", function(d) { return xScale(d.ptheta); })
+  //   .attr("cy", function(d) { return yScale(d.pphi); })
+  //   .attr("title", d => `(${d.ptheta}, ${d.pphi})`)
+  // };
 
-  let all = svg.selectAll("circle")
-    .data(minima);
+  // let all = svg.selectAll("circle")
+  //   .data(minima);
 
-  let enter = all.enter()
-    .append("circle")
-    .attr("r", 3)
-  ;
+  // let enter = all.enter()
+  //   .append("circle")
+  //   .attr("r", 3)
+  // ;
 
-  all.exit().remove();
-  update(enter);
-  update(all);
+  // all.exit().remove();
+  // update(enter);
+  // update(all);
 
 }
 
@@ -86,7 +86,10 @@ function updateVis2() {
     .range([minx, maxx]);
   let yScale = d3.scaleLinear()
     .domain([minpphi, maxpphi])
-    .range([minx, maxx]);
+    .range([maxx, minx]);
+
+  // console.log(minima);
+  console.log(minE + " " + maxE);
 
   let maxNumBounces = d3.max(minima, m => m.numBounces);
 
@@ -129,6 +132,7 @@ function updateVis3() {
   let minx = 20;
   let maxx = 680;
 
+  console.log(minima);
   let minE = d3.min(minima, d=>d.energy);
   let maxE = d3.max(minima, d=>d.energy);
   let minpphi = d3.min(minima, d=>d.pphi);
@@ -190,24 +194,39 @@ function filterChanged() {
 
 function updateDataset() {
   minima = [];
-  data.forEach(function(d) {
-    let numBounces = d.numBounces;
-    // console.log(numBounces);
-    d.energies.forEach(function(e) {
-      let energy = e.energy;
-      e.minima.forEach(function(m) {
-        let minimum = {
-          numBounces : numBounces,
-          energy : energy,
-          pr : calculate_pr(1, 0, 0, m.ptheta, m.pphi, energy),
-          ptheta : m.ptheta,
-          pphi : m.pphi,
-          t : m.t
-        };
-        minima.push(minimum);
+  if (data.newFormat == true) {
+    data.forEach(function(d) {
+      let minimum = {
+        numBounces : d.n,
+        energy : d.E,
+        pr : d.pr,
+        ptheta : d.ptheta,
+        pphi : d.pphi,
+        t : 0
+      };
+      minima.push(minimum);
+    });
+  } else {
+    data.forEach(function(d) {
+      let numBounces = d.numBounces;
+      // console.log(numBounces);
+      d.energies.forEach(function(e) {
+        let energy = e.energy;
+        e.minima.forEach(function(m) {
+          let minimum = {
+            numBounces : numBounces,
+            energy : energy,
+            pr : calculate_pr(1, 0, 0, m.ptheta, m.pphi, energy),
+            ptheta : m.ptheta,
+            pphi : m.pphi,
+            t : m.t
+          };
+          minima.push(minimum);
+        });
       });
     });
-  });
+  }
+  // console.log(minima);
 
   minima = minima.sort((a,b) => a.energy-b.energy);
   if (filterValue == FILTER_FIRSTS) {
@@ -246,15 +265,22 @@ function datasetChanged() {
   if (document.getElementById("dataset").value == "dataset2") {
     dataset = "output2.json";
   }
+  if (document.getElementById("dataset").value == "bifurcations") {
+    dataset = "bifurcation.json";
+  }
+  console.log(dataset);
   d3.json(dataset)
     .then(function(d) {
-      console.log(d);
+      // console.log(d);
       data = d;
+      if (dataset == "bifurcation.json") {
+        data.newFormat = true;
+      }
       updateDataset();
       updateVis();
       energyChanged(Number(document.getElementById('energySlider').value));
       updateVis2();
-      updateVis3();
+      // updateVis3();
     });
 }
 
@@ -266,7 +292,7 @@ function init() {
     if (i == -1) {
       option.text = 'all';
     } else if (i == 0) {
-      option.text = 'firsts';
+      // option.text = 'firsts';
       option.selected = 'selected';
     } else {
       option.text = i;
