@@ -15,50 +15,50 @@ let energyIndex = 0;
 let data;
 let filterValue = FILTER_ALL;
 
-function updateVis() {
-  // svg = d3.select("#svg");
-  svg2 = d3.select("#svg2");
+// function updateVis() {
+//   // svg = d3.select("#svg");
+//   svg2 = d3.select("#svg2");
 
-  // svg.selectAll('*').remove();
-  svg2.selectAll('*').remove();
+//   // svg.selectAll('*').remove();
+//   svg2.selectAll('*').remove();
 
-  // // console.log(data);
-  // // console.log(data[6].energies[energyIndex]);
-  // // let minima = data[6].energies[energyIndex].minima;
-  // let minima = data[0].energies[energyIndex].minima;
+//   // // console.log(data);
+//   // // console.log(data[6].energies[energyIndex]);
+//   // // let minima = data[6].energies[energyIndex].minima;
+//   // let minima = data[0].energies[energyIndex].minima;
 
-  // let xaccess = d => d.ptheta;
-  // let yaccess = d => d.pphi;
+//   // let xaccess = d => d.ptheta;
+//   // let yaccess = d => d.pphi;
 
-  // let xScale = d3.scaleLinear()
-  //   // .domain([d3.min(minima, xaccess), d3.max(minima, xaccess)])
-  //   .domain([-0.3, 0.3])
-  //   .range([20, 180]);
-  // let yScale = d3.scaleLinear()
-  //   // .domain([d3.min(minima, yaccess), d3.max(minima, yaccess)])
-  //   .domain([-0.3, 0.3])
-  //   .range([20, 180]);
+//   // let xScale = d3.scaleLinear()
+//   //   // .domain([d3.min(minima, xaccess), d3.max(minima, xaccess)])
+//   //   .domain([-0.3, 0.3])
+//   //   .range([20, 180]);
+//   // let yScale = d3.scaleLinear()
+//   //   // .domain([d3.min(minima, yaccess), d3.max(minima, yaccess)])
+//   //   .domain([-0.3, 0.3])
+//   //   .range([20, 180]);
 
-  // let update = function(s) {
-  //   s
-  //   .attr("cx", function(d) { return xScale(d.ptheta); })
-  //   .attr("cy", function(d) { return yScale(d.pphi); })
-  //   .attr("title", d => `(${d.ptheta}, ${d.pphi})`)
-  // };
+//   // let update = function(s) {
+//   //   s
+//   //   .attr("cx", function(d) { return xScale(d.ptheta); })
+//   //   .attr("cy", function(d) { return yScale(d.pphi); })
+//   //   .attr("title", d => `(${d.ptheta}, ${d.pphi})`)
+//   // };
 
-  // let all = svg.selectAll("circle")
-  //   .data(minima);
+//   // let all = svg.selectAll("circle")
+//   //   .data(minima);
 
-  // let enter = all.enter()
-  //   .append("circle")
-  //   .attr("r", 3)
-  // ;
+//   // let enter = all.enter()
+//   //   .append("circle")
+//   //   .attr("r", 3)
+//   // ;
 
-  // all.exit().remove();
-  // update(enter);
-  // update(all);
+//   // all.exit().remove();
+//   // update(enter);
+//   // update(all);
 
-}
+// }
 
 function energyChanged(i) {
   energyIndex = i;
@@ -89,10 +89,12 @@ function updateVis2() {
     .range([maxx, minx]);
 
   // console.log(minima);
-  console.log(minE + " " + maxE);
+  console.log("minE, maxE = " + minE + " " + maxE);
 
   let maxNumBounces = d3.max(minima, m => m.numBounces);
 
+  svg2 = d3.select("#svg2");
+  svg2.selectAll('*').remove();
   svg2.append("g")
     .attr('transform', `translate(0, ${yScale(maxpphi)+20})`)
     .call(x_axis)
@@ -125,59 +127,59 @@ function updateVis2() {
   ;
 }
 
-function updateVis3() {
-  svg3 = d3.select("#svg3");
-  svg3.selectAll('*').remove();
+// function updateVis3() {
+//   svg3 = d3.select("#svg3");
+//   svg3.selectAll('*').remove();
 
-  let minx = 20;
-  let maxx = 680;
+//   let minx = 20;
+//   let maxx = 680;
 
-  console.log(minima);
-  let minE = d3.min(minima, d=>d.energy);
-  let maxE = d3.max(minima, d=>d.energy);
-  let minpphi = d3.min(minima, d=>d.pphi);
-  let maxpphi = d3.max(minima, d=>d.pphi);
-  let maxNumBounces = d3.max(minima, m => m.numBounces);
+//   console.log(minima);
+//   let minE = d3.min(minima, d=>d.energy);
+//   let maxE = d3.max(minima, d=>d.energy);
+//   let minpphi = d3.min(minima, d=>d.pphi);
+//   let maxpphi = d3.max(minima, d=>d.pphi);
+//   let maxNumBounces = d3.max(minima, m => m.numBounces);
 
-  let eScale = d3.scaleLinear()
-    .domain([minE, maxE])
-    .range([maxx, minx]);
-  let bounceScale = d3.scaleLinear()
-    .domain([maxNumBounces, 0])
-    .range([minx, maxx]);
+//   let eScale = d3.scaleLinear()
+//     .domain([minE, maxE])
+//     .range([maxx, minx]);
+//   let bounceScale = d3.scaleLinear()
+//     .domain([maxNumBounces, 0])
+//     .range([minx, maxx]);
 
-  let x_axis = d3.axisBottom().scale(bounceScale);
+//   let x_axis = d3.axisBottom().scale(bounceScale);
 
-  svg3.append("g")
-    .attr('transform', `translate(0, ${eScale(minE)+20})`)
-    .call(x_axis)
-  ;
+//   svg3.append("g")
+//     .attr('transform', `translate(0, ${eScale(minE)+20})`)
+//     .call(x_axis)
+//   ;
 
-  svg3.append("g")
-    .attr('transform', `translate(${(minx+maxx)/2}, ${eScale(minE)+60})`)
-    .append('text')
-    .html('Num bounces')
-  ;
+//   svg3.append("g")
+//     .attr('transform', `translate(${(minx+maxx)/2}, ${eScale(minE)+60})`)
+//     .append('text')
+//     .html('Num bounces')
+//   ;
 
-  svg3.selectAll("circle")
-    .data(minima)
-    .enter()
-    .append("a")
-    .attr("xlink:href", d =>
-          `http://edwardsjohnmartin.github.io/MagPhyx/` +
-          `?initparams=1,0,0,${d.pr},${d.ptheta},${d.pphi}`)
-    .attr("target", "_magphyx")
-    .append("circle")
-    .attr("cx", function(d) { return bounceScale(d.numBounces); })
-    .attr("cy", function(d) { return eScale(d.energy); })
-    .attr("fill", d => googleColors[d.numBounces])
-    .attr("stroke", 'none')
-    .attr("r", 5)
-    .append("title")
-    .text(d => `bounces = ${d.numBounces} energy = ${d.energy}\n` +
-          `ptheta = ${d.ptheta} pphi = ${d.pphi} t = ${d.t}`)
-  ;
-}
+//   svg3.selectAll("circle")
+//     .data(minima)
+//     .enter()
+//     .append("a")
+//     .attr("xlink:href", d =>
+//           `http://edwardsjohnmartin.github.io/MagPhyx/` +
+//           `?initparams=1,0,0,${d.pr},${d.ptheta},${d.pphi}`)
+//     .attr("target", "_magphyx")
+//     .append("circle")
+//     .attr("cx", function(d) { return bounceScale(d.numBounces); })
+//     .attr("cy", function(d) { return eScale(d.energy); })
+//     .attr("fill", d => googleColors[d.numBounces])
+//     .attr("stroke", 'none')
+//     .attr("r", 5)
+//     .append("title")
+//     .text(d => `bounces = ${d.numBounces} energy = ${d.energy}\n` +
+//           `ptheta = ${d.ptheta} pphi = ${d.pphi} t = ${d.t}`)
+//   ;
+// }
 
 function filterChanged() {
   let v = document.getElementById("numBounces").value;
@@ -261,14 +263,17 @@ function updateDataset() {
 function datasetChanged() {
   // Load CSV file
   // console.log('loading');
-  let dataset = "output.json";
-  if (document.getElementById("dataset").value == "dataset2") {
-    dataset = "output2.json";
-  }
-  if (document.getElementById("dataset").value == "bifurcations") {
-    dataset = "bifurcation.json";
-  }
+
+  // let dataset = "output.json";
+  // if (document.getElementById("dataset").value == "dataset2") {
+  //   dataset = "output2.json";
+  // }
+  // if (document.getElementById("dataset").value == "bifurcations") {
+  //   dataset = "bifurcation.json";
+  // }
+  dataset = "bifurcation.json";
   console.log(dataset);
+
   d3.json(dataset)
     .then(function(d) {
       // console.log(d);
@@ -277,8 +282,8 @@ function datasetChanged() {
         data.newFormat = true;
       }
       updateDataset();
-      updateVis();
-      energyChanged(Number(document.getElementById('energySlider').value));
+      // updateVis();
+      // energyChanged(Number(document.getElementById('energySlider').value));
       updateVis2();
       // updateVis3();
     });
@@ -286,7 +291,7 @@ function datasetChanged() {
 
 function init() {
   var filter = document.getElementById("numBounces");
-  filter.innerHTML = '';
+  // filter.innerHTML = '';
   for (let i = -1; i <= 20; ++i) {
     var option = document.createElement("option");
     if (i == -1) {
@@ -300,6 +305,7 @@ function init() {
     filter.add(option);
   }
 
+  filter.value = 1;
   filterChanged();
   datasetChanged();
 }
