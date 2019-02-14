@@ -1,13 +1,8 @@
-<!-- CS-5890 Homework 1   -->
-<!-- John Edwards         -->
-<!-- john.edwards@usu.edu -->
-<!-- A00791824            -->
-
 <!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="utf-8">
-        <title>CS 5890</title>
+        <title>MagPhyx Bifurcations</title>
         <script src="https://d3js.org/d3.v5.min.js"></script>
         <style>
           rect.bar {
@@ -18,18 +13,13 @@
     </head>
     <body id="body" onload="init()">
       <div>
-      <!--select id="dataset" onchange="datasetChanged()">
-        <option value="dataset1">Dataset1</option>
-        <option value="dataset2">Dataset2</option>
-        <option value="bifurcations" selected="selected">Bifurcations</option>
-      </select-->
       <br>Num bounces filter:
-      <select id="numBounces" onchange="filterChanged()">
-        <option value="all">all</option>
-      </select>
+      <!--select id="numBounces" onchange="filterChanged()">
+      </select-->
+      <input type="text" id="filter" onchange="filterChanged()" size="12" value="1-3, 6, 9-12"/>
       </div>
 
-      <svg width="800" height="800" id="svg"></svg>
+      <svg width="700" height="700" id="svg"></svg>
 
       <script src="main.js?1"></script>
     </body>

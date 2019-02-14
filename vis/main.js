@@ -24,7 +24,7 @@ function energyChanged(i) {
 
 function updateVis() {
   let minx = 20;
-  let maxx = 680;
+  let maxx = 580;
 
   let minE = d3.min(minima, d=>d.energy);
   let maxE = d3.max(minima, d=>d.energy);
@@ -42,6 +42,7 @@ function updateVis() {
   let yScale = d3.scaleLinear()
     .domain([minpphi, maxpphi])
     .range([maxx, minx]);
+  let y_axis = d3.axisLeft().scale(yScale);
 
   console.log("minE, maxE = " + minE + " " + maxE);
 
@@ -49,15 +50,29 @@ function updateVis() {
 
   svg = d3.select("#svg");
   svg.selectAll('*').remove();
+
+  let xoffset = 60;
+
+  // x axis
   svg.append("g")
-    .attr('transform', `translate(0, ${yScale(maxpphi)+20})`)
+    .attr('transform', `translate(${xoffset}, ${yScale(minpphi)+20})`)
     .call(x_axis)
   ;
-
   svg.append("g")
-    .attr('transform', `translate(${(minx+maxx)/2}, ${yScale(maxpphi)+60})`)
+    .attr('transform', `translate(${xoffset + (minx+maxx)/2}, ${yScale(minpphi)+60})`)
     .append('text')
     .html('energy')
+  ;
+
+  // y axis
+  svg.append("g")
+    .attr('transform', `translate(${xoffset}, ${yScale(maxpphi)-20})`)
+    .call(y_axis)
+  ;
+  svg.append("g")
+    .attr('transform', `translate(20, ${yScale((maxpphi-minpphi)/2)}) rotate(${-90})`)
+    .append('text')
+    .html('p&phi;')
   ;
 
   svg.selectAll("circle")
@@ -69,7 +84,7 @@ function updateVis() {
           `?initparams=1,0,0,${d.pr},${d.ptheta},${d.pphi}`)
     .attr("target", "_magphyx")
     .append("circle")
-    .attr("cx", function(d) { return eScale(d.energy); })
+    .attr("cx", function(d) { return xoffset + eScale(d.energy); })
     .attr("cy", function(d) { return yScale(d.pphi); })
     // .attr("title", d => `(${d.ptheta}, ${d.pphi})`)
     .attr("fill", d => googleColors[d.numBounces])
@@ -82,15 +97,15 @@ function updateVis() {
 }
 
 function filterChanged() {
-  let v = document.getElementById("numBounces").value;
-  if (v == 'all') {
-    filterValue = FILTER_ALL;
-  } else if (v == 'firsts') {
-    filterValue = FILTER_FIRSTS;
-  } else {
-    // console.log(v);
-    filterValue = +v;
-  }
+  // let v = document.getElementById("numBounces").value;
+  // if (v == 'all') {
+  //   filterValue = FILTER_ALL;
+  // } else if (v == 'firsts') {
+  //   filterValue = FILTER_FIRSTS;
+  // } else {
+  //   // console.log(v);
+  //   filterValue = +v;
+  // }
   datasetChanged();
 }
 
@@ -130,31 +145,51 @@ function updateDataset() {
   }
 
   minima = minima.sort((a,b) => a.energy-b.energy);
-  if (filterValue == FILTER_FIRSTS) {
-    let maxBounces = d3.max(minima, d=>d.numBounces);
-    let bounce = maxBounces;
-    let filtered = [];
-    for (let i = 0; bounce > 0 && i < minima.length; ++i) {
-      // console.log(minima[i].energy);
-      if (minima[i].numBounces == bounce) {
-        filtered.push(minima[i]);
-        bounce--;
-        // console.log('changed bounce ' + bounce);
-      }
-    }
-    minima = filtered;
-  } 
+  // if (filterValue == FILTER_FIRSTS) {
+  //   let maxBounces = d3.max(minima, d=>d.numBounces);
+  //   let bounce = maxBounces;
+  //   let filtered = [];
+  //   for (let i = 0; bounce > 0 && i < minima.length; ++i) {
+  //     // console.log(minima[i].energy);
+  //     if (minima[i].numBounces == bounce) {
+  //       filtered.push(minima[i]);
+  //       bounce--;
+  //       // console.log('changed bounce ' + bounce);
+  //     }
+  //   }
+  //   minima = filtered;
+  // } 
   
-  minima = minima.filter(d => {
-    let ret = true;
-    if (filterValue == FILTER_ALL) {
-      // do nothing
-    } else if (filterValue == FILTER_FIRSTS) {
-      // already filtered
-    } else {
-      ret = d.numBounces == filterValue;
+  let s = document.getElementById('filter').value;//"1,12, 20";
+  let tokens = s.split(',');
+  let numbers = [];
+  tokens.forEach((y,i) => {
+    y = y.trim();
+    let startend = y.split('-');
+    let start = +startend[0];
+    let end = start;
+    if (startend.length > 1) {
+      end = +startend[1];
     }
-    return ret;
+    for (let i = start; i <= end; ++i) {
+      numbers.push(i);
+    }
+  });
+  console.log(numbers);
+
+  minima = minima.filter(d => {
+    // let ret = true;
+    // if (filterValue == FILTER_ALL) {
+    //   // do nothing
+    // } else if (filterValue == FILTER_FIRSTS) {
+    //   // already filtered
+    // } else {
+    //   ret = d.numBounces == filterValue;
+    // }
+    // return ret;
+    // if (d.numBounces == 12)
+    //   console.log('a');
+    return numbers.indexOf(d.numBounces) > -1;
   });
 
 }
@@ -186,22 +221,19 @@ function datasetChanged() {
 }
 
 function init() {
-  var filter = document.getElementById("numBounces");
-  // filter.innerHTML = '';
-  for (let i = -1; i <= 20; ++i) {
-    var option = document.createElement("option");
-    if (i == -1) {
-      option.text = 'all';
-    } else if (i == 0) {
-      // option.text = 'firsts';
-      option.selected = 'selected';
-    } else {
-      option.text = i;
-    }
-    filter.add(option);
-  }
+  // var filter = document.getElementById("numBounces");
+  // // filter.innerHTML = '';
+  // for (let i = 0; i <= 20; ++i) {
+  //   var option = document.createElement("option");
+  //   if (i == 0) {
+  //     option.text = 'all';
+  //   } else {
+  //     option.text = i;
+  //   }
+  //   filter.add(option);
+  // }
 
-  filter.value = 1;
+  // filter.value = 1;
   filterChanged();
   datasetChanged();
 }
