@@ -4,18 +4,23 @@
         <meta charset="utf-8">
         <title>MagPhyx Bifurcations</title>
         <script src="https://d3js.org/d3.v5.min.js"></script>
-        <style>
+        <link rel="stylesheet"  href="style.css">
+	<!--style type="text/css"></style-->
+        <!--style>
           rect.bar {
           /*fill: #9f009f;*/
             stroke-width: 0;
           }
-        </style>
+        </style-->
     </head>
     <body id="body" onload="init()">
       <div>
-      <br>Num bounces filter:
-      <input type="text" id="filter" oninput="filterChanged()" size="12" value="1-3, 6, 9-10"/>
+        <br>Click on a state to see its behavior.
+        <br><br>Num bounces filter:
+        <input type="text" id="filter" oninput="filterChanged()" size="12" value="1-3, 6, 9-10"/>
       </div>
+
+      <div class="legend"></div>
 
       <svg width="800" height="700" id="svg"></svg>
 

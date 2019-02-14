@@ -1,10 +1,16 @@
 let dataset = [];
-let color = d3.schemeCategory10;
 let googleColors = ["#3366cc", "#dc3912", "#ff9900", "#109618", "#990099", "#0099c6", "#dd4477", "#66aa00", "#b82e2e", "#316395", "#994499", "#22aa99", "#aaaa11", "#6633cc", "#e67300", "#8b0707", "#651067", "#329262", "#5574a6", "#3b3eac"];
 
 let data;
 
+function color(i) {
+  const n = googleColors.length;
+  return googleColors[i%n];
+}
+
 function updateVis() {
+  if (minima.length == 0) return;
+
   let minx = 20;
   let maxx = 680;
   let miny = 20;
@@ -28,7 +34,7 @@ function updateVis() {
     .range([maxy, miny]);
   let y_axis = d3.axisLeft().scale(yScale);
 
-  console.log("minE, maxE = " + minE + " " + maxE);
+  // console.log("minE, maxE = " + minE + " " + maxE);
 
   let maxNumBounces = d3.max(minima, m => m.numBounces);
 
@@ -70,25 +76,40 @@ function updateVis() {
     .append("circle")
     .attr("cx", function(d) { return xoffset + eScale(d.energy); })
     .attr("cy", function(d) { return yScale(d.pphi); })
-    // .attr("title", d => `(${d.ptheta}, ${d.pphi})`)
-    .attr("fill", d => googleColors[d.numBounces])
+    .attr("fill", d => color(d.numBounces))
     .attr("stroke", 'none')
     .attr("r", 3)
+    .on("click", function() {
+      console.log(this);
+      d3.select(this).attr("r", 6);
+    })
     .append("title")
     .text(d => `bounces = ${d.numBounces} energy = ${d.energy}\n` +
           `ptheta = ${d.ptheta} pphi = ${d.pphi} t = ${d.t}`)
   ;
 
-  // var legend5 = d3.select('.legend5').selectAll("legend")
-  //   .data(legendVals)
-  
-  // legend5.enter().append("div")
-  //   .attr("class","legends5")
-  
-  // var p = legend5.append("p").attr("class","country-name")
-  // p.append("span").attr("class","key-dot").style("background",function(d,i) { return color(i) } ) 
-  // p.insert("text").text(function(d,i) { return d } ) 
+  //----------------------------------------
+  // legend
+  //----------------------------------------
+  let legendVals = [];
+  minima.forEach(d => legendVals.push(d.numBounces));
+  legendVals = Array.from(new Set(legendVals)).reverse();
 
+  d3.select('.legend').selectAll('*').remove();
+  let legend = d3.select('.legend')
+    .selectAll("legend")
+    .data(legendVals);
+  p = legend.enter()
+    .append("div")
+    .attr("class","legend-div")
+    .append("p")
+    .attr("class","legend-text");
+  p.append("span")
+    .attr("class","key-dot")
+    // .style("background", (d,i) => googleColors[i] );
+    // .style("background", (d,i) => googleColors[d] );
+    .style("background", (d,i) => color(d) );
+  p.insert("text").text(d => d);
 }
 
 function filterChanged() {

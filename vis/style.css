@@ -1,0 +1,14 @@
+.legend-text {
+    margin: 0 !important;
+}
+
+.key-dot {
+    display: inline-block;
+    height: 10px;
+    margin-right: .5em;
+    width: 10px;
+}
+.legend-div {
+    float:left;
+    margin-right: 1em;
+}
