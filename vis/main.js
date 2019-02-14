@@ -1,30 +1,14 @@
-dataset = [10, 15, 12, 18, 8];
-let FILTER_ALL = -1;
-let FILTER_FIRSTS = -2;
-
-function calculate_pr(r, theta, phi, ptheta, pphi, energy) {
-  let pr2 = Math.abs(2*energy + (Math.cos(phi)+3*Math.cos(phi-2*theta))/
-                         (6*r*r*r)-ptheta*ptheta/(r*r)-10*pphi*pphi);
-  return Math.sqrt(pr2);
-}
-
+let dataset = [];
 let color = d3.schemeCategory10;
 let googleColors = ["#3366cc", "#dc3912", "#ff9900", "#109618", "#990099", "#0099c6", "#dd4477", "#66aa00", "#b82e2e", "#316395", "#994499", "#22aa99", "#aaaa11", "#6633cc", "#e67300", "#8b0707", "#651067", "#329262", "#5574a6", "#3b3eac"];
 
-let energyIndex = 0;
 let data;
-let filterValue = FILTER_ALL;
-
-function energyChanged(i) {
-  energyIndex = i;
-  updateVis();
-
-  document.getElementById('energyLabel').innerHTML = (-0.33 + i*0.01).toFixed(2);
-}
 
 function updateVis() {
   let minx = 20;
-  let maxx = 580;
+  let maxx = 680;
+  let miny = 20;
+  let maxy = 580;
 
   let minE = d3.min(minima, d=>d.energy);
   let maxE = d3.max(minima, d=>d.energy);
@@ -41,7 +25,7 @@ function updateVis() {
     .range([minx, maxx]);
   let yScale = d3.scaleLinear()
     .domain([minpphi, maxpphi])
-    .range([maxx, minx]);
+    .range([maxy, miny]);
   let y_axis = d3.axisLeft().scale(yScale);
 
   console.log("minE, maxE = " + minE + " " + maxE);
@@ -94,146 +78,76 @@ function updateVis() {
     .text(d => `bounces = ${d.numBounces} energy = ${d.energy}\n` +
           `ptheta = ${d.ptheta} pphi = ${d.pphi} t = ${d.t}`)
   ;
+
+  // var legend5 = d3.select('.legend5').selectAll("legend")
+  //   .data(legendVals)
+  
+  // legend5.enter().append("div")
+  //   .attr("class","legends5")
+  
+  // var p = legend5.append("p").attr("class","country-name")
+  // p.append("span").attr("class","key-dot").style("background",function(d,i) { return color(i) } ) 
+  // p.insert("text").text(function(d,i) { return d } ) 
+
 }
 
 function filterChanged() {
-  // let v = document.getElementById("numBounces").value;
-  // if (v == 'all') {
-  //   filterValue = FILTER_ALL;
-  // } else if (v == 'firsts') {
-  //   filterValue = FILTER_FIRSTS;
-  // } else {
-  //   // console.log(v);
-  //   filterValue = +v;
-  // }
-  datasetChanged();
-}
-
-function updateDataset() {
-  minima = [];
-  if (data.newFormat == true) {
-    data.forEach(function(d) {
-      let minimum = {
-        numBounces : d.n,
-        energy : d.E,
-        pr : d.pr,
-        ptheta : d.ptheta,
-        pphi : d.pphi,
-        t : 0
-      };
-      minima.push(minimum);
+  let numbers = [];
+  try {
+    // Parse the filter string
+    let s = document.getElementById('filter').value;
+    let tokens = s.split(',');
+    tokens.forEach((y,i) => {
+      y = y.trim();
+      let startend = y.split('-');
+      let start = +startend[0];
+      let end = start;
+      if (startend.length > 1) {
+        end = +startend[1];
+      }
+      if (start != start || end != end) {
+        throw "failed to parse filter";
+      }
+      for (let i = start; i <= end; ++i) {
+        numbers.push(i);
+      }
     });
-  } else {
-    data.forEach(function(d) {
-      let numBounces = d.numBounces;
-      // console.log(numBounces);
-      d.energies.forEach(function(e) {
-        let energy = e.energy;
-        e.minima.forEach(function(m) {
-          let minimum = {
-            numBounces : numBounces,
-            energy : energy,
-            pr : calculate_pr(1, 0, 0, m.ptheta, m.pphi, energy),
-            ptheta : m.ptheta,
-            pphi : m.pphi,
-            t : m.t
-          };
-          minima.push(minimum);
-        });
-      });
-    });
+  } catch(e) {
+    console.log(e);
+    return;
   }
 
-  minima = minima.sort((a,b) => a.energy-b.energy);
-  // if (filterValue == FILTER_FIRSTS) {
-  //   let maxBounces = d3.max(minima, d=>d.numBounces);
-  //   let bounce = maxBounces;
-  //   let filtered = [];
-  //   for (let i = 0; bounce > 0 && i < minima.length; ++i) {
-  //     // console.log(minima[i].energy);
-  //     if (minima[i].numBounces == bounce) {
-  //       filtered.push(minima[i]);
-  //       bounce--;
-  //       // console.log('changed bounce ' + bounce);
-  //     }
-  //   }
-  //   minima = filtered;
-  // } 
-  
-  let s = document.getElementById('filter').value;//"1,12, 20";
-  let tokens = s.split(',');
-  let numbers = [];
-  tokens.forEach((y,i) => {
-    y = y.trim();
-    let startend = y.split('-');
-    let start = +startend[0];
-    let end = start;
-    if (startend.length > 1) {
-      end = +startend[1];
-    }
-    for (let i = start; i <= end; ++i) {
-      numbers.push(i);
-    }
+  minima = [];
+  data.forEach(function(d) {
+    let minimum = {
+      numBounces : d.n,
+      energy : d.E,
+      pr : d.pr,
+      ptheta : d.ptheta,
+      pphi : d.pphi,
+      t : 0
+    };
+    minima.push(minimum);
   });
-  console.log(numbers);
 
+  minima = minima.sort((a,b) => a.energy-b.energy);
+  
   minima = minima.filter(d => {
-    // let ret = true;
-    // if (filterValue == FILTER_ALL) {
-    //   // do nothing
-    // } else if (filterValue == FILTER_FIRSTS) {
-    //   // already filtered
-    // } else {
-    //   ret = d.numBounces == filterValue;
-    // }
-    // return ret;
-    // if (d.numBounces == 12)
-    //   console.log('a');
     return numbers.indexOf(d.numBounces) > -1;
   });
 
+  updateVis();
 }
 
-function datasetChanged() {
-  // Load CSV file
-  // console.log('loading');
-
-  // let dataset = "output.json";
-  // if (document.getElementById("dataset").value == "dataset2") {
-  //   dataset = "output2.json";
-  // }
-  // if (document.getElementById("dataset").value == "bifurcations") {
-  //   dataset = "bifurcation.json";
-  // }
-  dataset = "bifurcation.json";
-  console.log(dataset);
-
+function init() {
+  // Read the dataset
+  let dataset = "bifurcation.json";
   d3.json(dataset)
     .then(function(d) {
-      // console.log(d);
       data = d;
       if (dataset == "bifurcation.json") {
         data.newFormat = true;
       }
-      updateDataset();
-      updateVis();
+      filterChanged();
     });
-}
-
-function init() {
-  // var filter = document.getElementById("numBounces");
-  // // filter.innerHTML = '';
-  // for (let i = 0; i <= 20; ++i) {
-  //   var option = document.createElement("option");
-  //   if (i == 0) {
-  //     option.text = 'all';
-  //   } else {
-  //     option.text = i;
-  //   }
-  //   filter.add(option);
-  // }
-
-  // filter.value = 1;
-  filterChanged();
-  datasetChanged();
 }

@@ -14,12 +14,10 @@
     <body id="body" onload="init()">
       <div>
       <br>Num bounces filter:
-      <!--select id="numBounces" onchange="filterChanged()">
-      </select-->
-      <input type="text" id="filter" onchange="filterChanged()" size="12" value="1-3, 6, 9-12"/>
+      <input type="text" id="filter" oninput="filterChanged()" size="12" value="1-3, 6, 9-10"/>
       </div>
 
-      <svg width="700" height="700" id="svg"></svg>
+      <svg width="800" height="700" id="svg"></svg>
 
       <script src="main.js?1"></script>
     </body>
