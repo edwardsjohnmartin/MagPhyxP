@@ -11,7 +11,7 @@ struct Minimum {
   double t;
 };
 
-extern Minimum calculate_min(double ptheta, double pphi, int num_events, double energy, double step_size, int vary);
+extern Minimum calculate_min(double ptheta, double pphi, int num_events, double energy, double step_size, int vary, double sim_step_size);
  %}
  
  extern double period(double ptheta, double pphi, int num_events, double energy);
@@ -22,4 +22,4 @@ struct Minimum {
   double f;
   double t;
 };
- extern Minimum calculate_min(double ptheta, double pphi, int num_events, double energy, double step_size, int vary);
+extern Minimum calculate_min(double ptheta, double pphi, int num_events, double energy, double step_size, int vary, double sim_step_size);

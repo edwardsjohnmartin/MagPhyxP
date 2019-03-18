@@ -170,6 +170,7 @@ void printUsage() {
 //    
 //------------------------------------------------------------
 int main(int argc, char** argv) {
+  return 0;
   // double energy_ = -0.1;
   // double num_bounces_ = 4;
   // double ptheta_ = -0.210689108629370514;
@@ -241,7 +242,7 @@ int main(int argc, char** argv) {
   double energy = -0.14;
 
   Minimum min = calculate_min_impl(ptheta, pphi, num_events, energy, 0.00001,
-                                   VARY_PTHETA_PPHI);
+                                   VARY_PTHETA_PPHI, 0.02);
   printf("ptheta: %.12f pphi: %.12f\n", ptheta, pphi);
   printf("ptheta: %.18f pphi: %.18f fval: %.18f\n", min.ptheta, min.pphi, min.f);
 

@@ -368,8 +368,9 @@ double my_f_energy(const gsl_vector* v, void* params) {
 
 Minimum calculate_min_impl(double ptheta, double pphi,
                            int num_events, double energy,
-                           double step_size, int vary) {
+                           double step_size, int vary, double h) {
 
+  o.h = h;
   o.numEvents = num_events;
   Dipole freeDipole = create_dipole(ptheta, pphi, energy);
   unsigned int iter = 0;
