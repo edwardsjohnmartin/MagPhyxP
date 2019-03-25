@@ -231,6 +231,7 @@ Dipole doSimulation(const Dipole& freeDipole, double* t_out) {
   const int numEvents = o.numEvents;
   const int numSteps = o.numSteps;
 
+  // printf("h_ = %f\n", h_);
   Stepper stepper(freeDipole, h_, o.fixed_h, o.eps);
   Dipole toReturn;
 
@@ -370,6 +371,7 @@ Minimum calculate_min_impl(double ptheta, double pphi,
                            int num_events, double energy,
                            double step_size, int vary, double h) {
 
+  printf("Calculating minimum with simulation step size = %e\n", h);
   o.h = h;
   o.numEvents = num_events;
   Dipole freeDipole = create_dipole(ptheta, pphi, energy);
@@ -447,7 +449,8 @@ Minimum calculate_min_impl(double ptheta, double pphi,
   //                 gsl_vector_get(s->x, 1),
   //                 // energy,
   //                 s->fval };
-  cout << "t = " << params.t << endl;
+  // cout << "t = " << params.t << endl;
+  printf("t = %.18f\n", params.t);
   Minimum ret;
   if (vary == VARY_PTHETA_PPHI) {
     ret = { gsl_vector_get(s->x, 0),

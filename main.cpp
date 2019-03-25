@@ -40,7 +40,7 @@ const double default_eps = 1e-10;
 // void calculateMin (Dipole& freeDipole);
 // double my_f (const gsl_vector* v, void* params);
 Minimum calculate_min_impl(double ptheta, double pphi,
-                     int num_events, double energy, double step_size, int vary);
+                     int num_events, double energy, double step_size, int vary, double h);
 double period_impl(double ptheta, double pphi, int num_events, double energy);
 
 void printUsage() {
@@ -170,7 +170,7 @@ void printUsage() {
 //    
 //------------------------------------------------------------
 int main(int argc, char** argv) {
-  return 0;
+  // return 0;
   // double energy_ = -0.1;
   // double num_bounces_ = 4;
   // double ptheta_ = -0.210689108629370514;
@@ -226,8 +226,10 @@ int main(int argc, char** argv) {
   // double pphi = 0.14;
   // double ptheta = -0.2107;
   // double pphi = 0.1345;
-  double ptheta = -0.5223332269729719;
-  double pphi = 0.055058756494009986;
+  // double ptheta = -0.5223332269729719;
+  // double pphi = 0.055058756494009986;
+  double ptheta = -0.00000115965;
+  double pphi = 0.000001;
 
   double h = 0.005;
   printf("%.4f %.4f %.4f %.4f %.4f\n",
@@ -237,16 +239,21 @@ int main(int argc, char** argv) {
         period_impl(ptheta, pphi+h, 4, -0.1),
         period_impl(ptheta, pphi-h, 4, -0.1));
 
-  int num_events = 8;
+  int num_events = 200;
   // double energy = -0.33;
-  double energy = -0.14;
+  double energy = -1/3.0 + 0.000000001;
 
+  double sim_step_size = 1e-7;//0.000000001;
+  printf("Calculating min\n");
+  // Minimum min = calculate_min_impl(ptheta, pphi, num_events, energy, 0.00001,
+  //                                  VARY_PTHETA_PPHI, sim_step_size);
   Minimum min = calculate_min_impl(ptheta, pphi, num_events, energy, 0.00001,
-                                   VARY_PTHETA_PPHI, 0.02);
-  printf("ptheta: %.12f pphi: %.12f\n", ptheta, pphi);
-  printf("ptheta: %.18f pphi: %.18f fval: %.18f\n", min.ptheta, min.pphi, min.f);
+                                   VARY_PTHETA_ENERGY, sim_step_size);
+  // printf("ptheta: %.12f pphi: %.12f\n", ptheta, pphi);
+  printf("ptheta: %.18f pphi: %.18f energy: %.18f fval: %.18f\n", min.ptheta, min.pphi, min.energy, min.f);
 
-  printf("%.18f %.18f\n", min.ptheta, period_impl(min.ptheta, min.pphi, num_events, energy));
+  printf("Calculating period given min\n");
+  printf("error in f = %.28f\n", period_impl(min.ptheta, min.pphi, num_events, energy));
 
 
 
