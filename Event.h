@@ -7,6 +7,13 @@
 #include "./Options.h"
 #include "./Physics.h"
 
+#define EVENT_TYPE_PHI 1
+#define EVENT_TYPE_THETA 2
+#define EVENT_TYPE_BETA 4
+#define EVENT_TYPE_PR 8
+#define EVENT_TYPE_PTHETA 16
+#define EVENT_TYPE_PPHI 32
+
 class Event {
  public:
   Event(const std::string& filename, const Dipole& d,
@@ -14,7 +21,8 @@ class Event {
       : _n(1), _d(d), _singleStep(singleStep) {
     _isStdout = (filename == "");
     if (_isStdout) {
-      _file = stdout;
+      // _file = stdout;
+      _file = 0;
     } else {
       _file = fopen(filename.c_str(), "w");
     }
@@ -24,29 +32,23 @@ class Event {
     if (_singleStep != Options::NONE && _singleStep != Options::ALL) {
       if (o.fft) {
         gsl_fft_real_radix2_transform(_ss_v.data(), 1, _ss_v.size());
-        // // Print complex result
-        // const int n = _ss_t.size();
-        // fprintf(_file, "%lf %lf %lf\n", _ss_t[0], _ss_v[0], 0.0);
-        // for (int i = 1; i < n/2; ++i) {
-        //   fprintf(_file, "%lf %lf %lf\n", _ss_t[i], _ss_v[i], _ss_v[n-i]);
-        // }
-        // fprintf(_file, "%lf %lf %lf\n", _ss_t[n/2], _ss_v[n/2], 0.0);
-        // for (int i = n/2+1; i < n; ++i) {
-        //   fprintf(_file, "%lf %lf %lf\n", _ss_t[i], _ss_v[n-i], -_ss_v[i]);
-        // }
         // Print power spectrum
         const int n = _ss_t.size();
-        fprintf(_file, "%lf %lf\n", _ss_t[0], sq(_ss_v[0], 0));
-        for (int i = 1; i < n/2; ++i) {
-          fprintf(_file, "%lf %lf\n", _ss_t[i], sq(_ss_v[i], _ss_v[n-i]));
-        }
-        fprintf(_file, "%lf %lf\n", _ss_t[n/2], sq(_ss_v[n/2], 0.0));
-        for (int i = n/2+1; i < n; ++i) {
-          fprintf(_file, "%lf %lf\n", _ss_t[i], sq(_ss_v[n-i], -_ss_v[i]));
+        if (_file) {
+          fprintf(_file, "%lf %lf\n", _ss_t[0], sq(_ss_v[0], 0));
+          for (int i = 1; i < n/2; ++i) {
+            fprintf(_file, "%lf %lf\n", _ss_t[i], sq(_ss_v[i], _ss_v[n-i]));
+          }
+          fprintf(_file, "%lf %lf\n", _ss_t[n/2], sq(_ss_v[n/2], 0.0));
+          for (int i = n/2+1; i < n; ++i) {
+            fprintf(_file, "%lf %lf\n", _ss_t[i], sq(_ss_v[n-i], -_ss_v[i]));
+          }
         }
       } else {
-        for (int i = 0; i < _ss_t.size(); ++i) {
-          fprintf(_file, "%lf %lf\n", _ss_t[i], _ss_v[i]);
+        if (_file) {
+          for (int i = 0; i < _ss_t.size(); ++i) {
+            fprintf(_file, "%lf %lf\n", _ss_t[i], _ss_v[i]);
+          }
         }
       }
     }
@@ -70,8 +72,10 @@ class Event {
  public:
   void printHeader() const {
     if (_singleStep == Options::NONE || _singleStep == Options::ALL) {
-      fprintf(_file, "n, event_type, t, r, theta, phi,"
-              "pr, ptheta, pphi, beta, E, dE\n");
+      if (_file) {
+        fprintf(_file, "n, event_type, t, r, theta, phi,"
+                "pr, ptheta, pphi, beta, E, dE\n");
+      }
     }
   }
 
@@ -83,7 +87,7 @@ class Event {
     event("init", logDipole, t);
   }
 
-  bool log(const Dipole& new_d, const double t) {
+  bool log(const Dipole& new_d, const double t, int* eventType=0) {
     if (_singleStep != Options::NONE) {
       _ss_t.push_back(t);
       if (_singleStep == Options::THETA) {
@@ -103,36 +107,42 @@ class Event {
           _d, new_d, [](const Dipole& d) {return d.get_theta();});
       event("theta = 0", logDipole, t);
       fired = true;
+      if (eventType) *eventType |= EVENT_TYPE_THETA;
     }
     if (isZeroCrossing(_d.get_phi(), new_d.get_phi())) {
       const Dipole logDipole = Dipole::interpolateZeroCrossing(
           _d, new_d, [](const Dipole& d) {return d.get_phi();});
       event("phi = 0", logDipole, t);
       fired = true;
+      if (eventType) *eventType |= EVENT_TYPE_PHI;
     }
     if (isZeroCrossing(Physics::get_beta(_d), Physics::get_beta(new_d))) {
       const Dipole logDipole = Dipole::interpolateZeroCrossing(
           _d, new_d, [](const Dipole& d) {return Physics::get_beta(d);});
       event("beta = 0", logDipole, t);
       fired = true;
+      if (eventType) *eventType |= EVENT_TYPE_BETA;
     }
     if (isNegativeZeroCrossing(_d.get_pr(), new_d.get_pr())) {
       const Dipole logDipole = Dipole::interpolateZeroCrossing(
           _d, new_d, [](const Dipole& d) {return d.get_pr();});
       event("pr = 0", logDipole, t);
       fired = true;
+      if (eventType) *eventType |= EVENT_TYPE_PR;
     }
     if (isZeroCrossing(_d.get_ptheta(), new_d.get_ptheta())) {
       const Dipole logDipole = Dipole::interpolateZeroCrossing(
           _d, new_d, [](const Dipole& d) {return d.get_ptheta();});
       event("ptheta = 0", logDipole, t);
       fired = true;
+      if (eventType) *eventType |= EVENT_TYPE_PTHETA;
     }
     if (isZeroCrossing(_d.get_pphi(), new_d.get_pphi())) {
       const Dipole logDipole = Dipole::interpolateZeroCrossing(
           _d, new_d, [](const Dipole& d) {return d.get_pphi();});
       event("pphi = 0", logDipole, t);
       fired = true;
+      if (eventType) *eventType |= EVENT_TYPE_PPHI;
     }
     _d = new_d;
     return fired;
@@ -150,11 +160,13 @@ class Event {
 
  private:
   void event(const std::string& name, const Dipole& d, const double t) {
-    fprintf(_file, "%d,%s,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%.2e\n",
-            _n, name.c_str(), t, d.get_r(),
-            Physics::rad2deg(d.get_theta()), Physics::rad2deg(d.get_phi()),
-            d.get_pr(), d.get_ptheta(), d.get_pphi(), Physics::get_beta(d),
-            d.get_E(), d.get_dE());
+    if (_file) {
+      fprintf(_file, "%d,%s,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%lf,%.2e\n",
+              _n, name.c_str(), t, d.get_r(),
+              Physics::rad2deg(d.get_theta()), Physics::rad2deg(d.get_phi()),
+              d.get_pr(), d.get_ptheta(), d.get_pphi(), Physics::get_beta(d),
+              d.get_E(), d.get_dE());
+    }
     _n++;
   }
 

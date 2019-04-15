@@ -228,20 +228,26 @@ int main(int argc, char** argv) {
   // double pphi = 0.1345;
   // double ptheta = -0.5223332269729719;
   // double pphi = 0.055058756494009986;
-  double ptheta = -0.00000115965;
-  double pphi = 0.000001;
+  // double ptheta = -0.00000115965;
+  // double pphi = 0.000001;
+  // double ptheta = -0.1444599543;
+  // double pphi = 0.091001;
+  double ptheta = -0.0411104287;
+  double pphi = 0.026001;
 
   double h = 0.005;
-  printf("%.4f %.4f %.4f %.4f %.4f\n",
-        period_impl(ptheta, pphi, 4, -0.1),
-        period_impl(ptheta+h, pphi, 4, -0.1),
-        period_impl(ptheta-h, pphi, 4, -0.1),
-        period_impl(ptheta, pphi+h, 4, -0.1),
-        period_impl(ptheta, pphi-h, 4, -0.1));
+  // printf("%.4f %.4f %.4f %.4f %.4f\n",
+  //       period_impl(ptheta, pphi, 4, -0.1),
+  //       period_impl(ptheta+h, pphi, 4, -0.1),
+  //       period_impl(ptheta-h, pphi, 4, -0.1),
+  //       period_impl(ptheta, pphi+h, 4, -0.1),
+  //       period_impl(ptheta, pphi-h, 4, -0.1));
 
-  int num_events = 200;
+  int num_events = 2000;
   // double energy = -0.33;
-  double energy = -1/3.0 + 0.000000001;
+  // double energy = -1/3.0 + 0.000000001;
+  // double energy = -0.2529;
+  double energy = -0.1913;
 
   double sim_step_size = 1e-7;//0.000000001;
   printf("Calculating min\n");
@@ -250,10 +256,10 @@ int main(int argc, char** argv) {
   Minimum min = calculate_min_impl(ptheta, pphi, num_events, energy, 0.00001,
                                    VARY_PTHETA_ENERGY, sim_step_size);
   // printf("ptheta: %.12f pphi: %.12f\n", ptheta, pphi);
-  printf("ptheta: %.18f pphi: %.18f energy: %.18f fval: %.18f\n", min.ptheta, min.pphi, min.energy, min.f);
+  printf("ptheta: %.18f pphi: %.18f energy: %.18f fval: %.18f rocking: (%d %d)\n", min.ptheta, min.pphi, min.energy, min.f, min.rocking_cycles, min.rocking_inphase);
 
-  printf("Calculating period given min\n");
-  printf("error in f = %.28f\n", period_impl(min.ptheta, min.pphi, num_events, energy));
+  // printf("Calculating period given min\n");
+  // printf("error in f = %.28f\n", period_impl(min.ptheta, min.pphi, num_events, energy));
 
 
 

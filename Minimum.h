@@ -7,6 +7,8 @@ struct Minimum {
   double energy;
   double f;
   double t;
+  int rocking_cycles;
+  int rocking_inphase;
 };
 
 #endif
