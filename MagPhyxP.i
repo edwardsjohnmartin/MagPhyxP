@@ -9,8 +9,8 @@ struct Minimum {
   double energy;
   double f;
   double t;
-  int rocking_cycles;
-  int rocking_inphase;
+  int rocking_number;
+  int rocking_in_phase;
 };
 
 extern Minimum calculate_min(double ptheta, double pphi, int num_events, double energy, double step_size, int vary, double sim_step_size);
@@ -23,7 +23,7 @@ struct Minimum {
   double energy;
   double f;
   double t;
-  int rocking_cycles;
-  int rocking_inphase;
+  int rocking_number;
+  int rocking_in_phase;
 };
 extern Minimum calculate_min(double ptheta, double pphi, int num_events, double energy, double step_size, int vary, double sim_step_size);

@@ -283,7 +283,7 @@ Dipole doSimulation(const Dipole& freeDipole, double* t_out, int* rocking_number
     } else {
       int eventType = 0;
       const bool fired = event.log(stepper.d, stepper.t, &eventType);
-      if (fired && eventType == EVENT_TYPE_PTHETA) {
+      if (fired && eventType & EVENT_TYPE_PTHETA) {
         ptheta_crossings++;
       }
     }
@@ -296,7 +296,8 @@ Dipole doSimulation(const Dipole& freeDipole, double* t_out, int* rocking_number
   }
   if (rocking_number) {
     *rocking_number = ptheta_crossings;
-  }
+    // printf("rocking_number = %d\n", ptheta_crossings);
+   }
 
   return toReturn;
 }

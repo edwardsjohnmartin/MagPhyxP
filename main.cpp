@@ -232,8 +232,11 @@ int main(int argc, char** argv) {
   // double pphi = 0.000001;
   // double ptheta = -0.1444599543;
   // double pphi = 0.091001;
-  double ptheta = -0.0411104287;
-  double pphi = 0.026001;
+  // double ptheta = -0.0411104287;
+  // double pphi = 0.026001;
+  double ptheta = -0.3557069348;
+  double pphi = 0.2300000010;
+  double energy = -0.0021359377;
 
   double h = 0.005;
   // printf("%.4f %.4f %.4f %.4f %.4f\n",
@@ -243,20 +246,15 @@ int main(int argc, char** argv) {
   //       period_impl(ptheta, pphi+h, 4, -0.1),
   //       period_impl(ptheta, pphi-h, 4, -0.1));
 
-  int num_events = 2000;
-  // double energy = -0.33;
-  // double energy = -1/3.0 + 0.000000001;
-  // double energy = -0.2529;
-  double energy = -0.1913;
+  int num_events = 10;
 
-  double sim_step_size = 1e-7;//0.000000001;
+  double sim_step_size = 1e-7;
   printf("Calculating min\n");
   // Minimum min = calculate_min_impl(ptheta, pphi, num_events, energy, 0.00001,
   //                                  VARY_PTHETA_PPHI, sim_step_size);
   Minimum min = calculate_min_impl(ptheta, pphi, num_events, energy, 0.00001,
                                    VARY_PTHETA_ENERGY, sim_step_size);
-  // printf("ptheta: %.12f pphi: %.12f\n", ptheta, pphi);
-  printf("ptheta: %.18f pphi: %.18f energy: %.18f fval: %.18f rocking: (%d %d)\n", min.ptheta, min.pphi, min.energy, min.f, min.rocking_cycles, min.rocking_inphase);
+  printf("ptheta: %.18f pphi: %.18f energy: %.18f fval: %.18f rocking: (%d %d)\n", min.ptheta, min.pphi, min.energy, min.f, min.rocking_number, min.rocking_in_phase);
 
   // printf("Calculating period given min\n");
   // printf("error in f = %.28f\n", period_impl(min.ptheta, min.pphi, num_events, energy));
