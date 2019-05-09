@@ -16,14 +16,18 @@
     <body id="body" onload="init()">
       <div>
         <br>Click on a state to see its behavior.
-        <br><br>Num bounces filter:
+        <br><br>
+        Num bounces filter:
         <input type="text" id="filter" oninput="filterChanged()" size="12" value="1-3, 6, 9-10"/>
+        <br>
+        Rocking number filter:
+        <input type="text" id="rocking_filter" oninput="rockingChanged()" size="12" value=""/>
       </div>
 
       <div class="legend"></div>
 
       <svg width="800" height="700" id="svg"></svg>
 
-      <script src="main.js?1"></script>
+      <script src="main.js?2"></script>
     </body>
 </html>

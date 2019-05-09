@@ -85,7 +85,8 @@ function updateVis() {
     })
     .append("title")
     .text(d => `bounces = ${d.numBounces} energy = ${d.energy}\n` +
-          `ptheta = ${d.ptheta} pphi = ${d.pphi} t = ${d.t}`)
+          `ptheta = ${d.ptheta} pphi = ${d.pphi}\n` +
+          `rocking = ${d.rocking} phase = ${d.phase} t = ${d.t}`)
   ;
 
   //----------------------------------------
@@ -112,49 +113,70 @@ function updateVis() {
   p.insert("text").text(d => d);
 }
 
-function filterChanged() {
+// Returns an array of booleans. If the number i is included in s and the
+// return value is numbers, then numbers[i] == true.
+function parseNumbers(s) {
+  // Parse the filter string
   let numbers = [];
+  let tokens = s.split(',');
+  tokens.forEach((y,i) => {
+    y = y.trim();
+    let startend = y.split('-');
+    let start = +startend[0];
+    let end = start;
+    if (startend.length > 1) {
+      end = +startend[1];
+    }
+    if (start != start || end != end) {
+      throw "failed to parse filter";
+    }
+    for (let i = start; i <= end; ++i) {
+      numbers.push(i);
+    }
+  });
+
+  // return numbers;
+
+  let max = Math.max(...numbers);
+  let arr = new Array(max+1).fill(false);
+  numbers.forEach(i => { arr[i] = true; });
+  return arr;
+}
+
+function filterChanged() {
+  let numbers;
   try {
-    // Parse the filter string
     let s = document.getElementById('filter').value;
-    let tokens = s.split(',');
-    tokens.forEach((y,i) => {
-      y = y.trim();
-      let startend = y.split('-');
-      let start = +startend[0];
-      let end = start;
-      if (startend.length > 1) {
-        end = +startend[1];
-      }
-      if (start != start || end != end) {
-        throw "failed to parse filter";
-      }
-      for (let i = start; i <= end; ++i) {
-        numbers.push(i);
-      }
-    });
+    numbers = parseNumbers(s);
   } catch(e) {
     console.log(e);
     return;
   }
 
-  minima = [];
-  data.forEach(function(d) {
-    let minimum = {
-      numBounces : d.n,
-      energy : d.E,
-      pr : d.pr,
-      ptheta : d.ptheta,
-      pphi : d.pphi,
-      t : 0
-    };
-    minima.push(minimum);
-  });
+  // minima = [];
+  // data.forEach(function(d) {
+  //   let minimum = {
+  //     numBounces : d.n,
+  //     energy : d.E,
+  //     pr : d.pr,
+  //     ptheta : d.ptheta,
+  //     pphi : d.pphi,
+  //     rocking : d.rocking,
+  //     phase : d.phase,
+  //     t : d.period,
+  //   };
+  //   minima.push(minimum);
+  // });
 
-  minima = minima.sort((a,b) => a.energy-b.energy);
+  // minima = minima.sort((a,b) => a.energy-b.energy);
   
-  minima = minima.filter(d => {
-    return numbers.indexOf(d.numBounces) > -1;
+  // minima = minima.filter(d => {
+  //   // return numbers.indexOf(d.numBounces) > -1;
+  //   return numbers[d.numBounces];
+  // });
+
+  minima = data.filter(d => {
+    return numbers[d.numBounces];
   });
 
   updateVis();
@@ -165,10 +187,23 @@ function init() {
   let dataset = "bifurcation.json";
   d3.json(dataset)
     .then(function(d) {
-      data = d;
-      if (dataset == "bifurcation.json") {
-        data.newFormat = true;
-      }
+      // data = d;
+
+      data = [];
+      d.forEach(function(s) {
+        let state = {
+          numBounces : s.n,
+          energy : s.E,
+          pr : s.pr,
+          ptheta : s.ptheta,
+          pphi : s.pphi,
+          rocking : s.rocking,
+          phase : s.phase,
+          t : s.period,
+        };
+        data.push(state);
+      });
+
       filterChanged();
     });
 }
