@@ -1,0 +1,1 @@
+rename -n 's/magphyx /trace2-/g; s/\(//g; s/\)//g' mag*.png
