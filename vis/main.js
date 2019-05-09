@@ -1,7 +1,11 @@
-let dataset = [];
 let googleColors = ["#3366cc", "#dc3912", "#ff9900", "#109618", "#990099", "#0099c6", "#dd4477", "#66aa00", "#b82e2e", "#316395", "#994499", "#22aa99", "#aaaa11", "#6633cc", "#e67300", "#8b0707", "#651067", "#329262", "#5574a6", "#3b3eac"];
 
-let data;
+let allStates;
+let filter = {
+  bounces : null,
+  rocking : null,
+  phase : null
+};
 
 function color(i) {
   const n = googleColors.length;
@@ -9,17 +13,36 @@ function color(i) {
 }
 
 function updateVis() {
-  if (minima.length == 0) return;
+  // Filter states
+  states = allStates.filter(d => {
+    let include = true;
+    if (include && filter.bounces != null) {
+      include = filter.bounces[d.numBounces];
+    }
+    if (include && filter.rocking != null) {
+      include = filter.rocking[d.rocking];
+    }
+    if (include && filter.phase != null) {
+      include = (filter.phase == d.phase);
+    }
+    return include;
+  });
+
+  // if (states.length == 0) return;
 
   let minx = 20;
   let maxx = 680;
   let miny = 20;
   let maxy = 580;
 
-  let minE = d3.min(minima, d=>d.energy);
-  let maxE = d3.max(minima, d=>d.energy);
-  let minpphi = d3.min(minima, d=>d.pphi);
-  let maxpphi = d3.max(minima, d=>d.pphi);
+  // let minE = d3.min(states, d=>d.energy);
+  // let maxE = d3.max(states, d=>d.energy);
+  // let minpphi = d3.min(states, d=>d.pphi);
+  // let maxpphi = d3.max(states, d=>d.pphi);
+  let minE = d3.min(allStates, d=>d.energy);
+  let maxE = d3.max(allStates, d=>d.energy);
+  let minpphi = d3.min(allStates, d=>d.pphi);
+  let maxpphi = d3.max(allStates, d=>d.pphi);
 
   let scale = d3.scaleLinear()
     .domain([minE, maxE])
@@ -36,7 +59,7 @@ function updateVis() {
 
   // console.log("minE, maxE = " + minE + " " + maxE);
 
-  let maxNumBounces = d3.max(minima, m => m.numBounces);
+  // let maxNumBounces = d3.max(states, m => m.numBounces);
 
   svg = d3.select("#svg");
   svg.selectAll('*').remove();
@@ -66,7 +89,7 @@ function updateVis() {
   ;
 
   svg.selectAll("circle")
-    .data(minima)
+    .data(states)
     .enter()
     .append("a")
     .attr("xlink:href", d =>
@@ -93,7 +116,7 @@ function updateVis() {
   // legend
   //----------------------------------------
   let legendVals = [];
-  minima.forEach(d => legendVals.push(d.numBounces));
+  states.forEach(d => legendVals.push(d.numBounces));
   legendVals = Array.from(new Set(legendVals)).reverse();
 
   d3.select('.legend').selectAll('*').remove();
@@ -121,21 +144,25 @@ function parseNumbers(s) {
   let tokens = s.split(',');
   tokens.forEach((y,i) => {
     y = y.trim();
-    let startend = y.split('-');
-    let start = +startend[0];
-    let end = start;
-    if (startend.length > 1) {
-      end = +startend[1];
-    }
-    if (start != start || end != end) {
-      throw "failed to parse filter";
-    }
-    for (let i = start; i <= end; ++i) {
-      numbers.push(i);
+    if (y.length > 0) {
+      let startend = y.split('-');
+      let start = +startend[0];
+      let end = start;
+      if (startend.length > 1) {
+        end = +startend[1];
+      }
+      if (start != start || end != end) {
+        throw "failed to parse filter";
+      }
+      for (let i = start; i <= end; ++i) {
+        numbers.push(i);
+      }
     }
   });
 
-  // return numbers;
+  if (numbers.length == 0) {
+    return new Array(0);
+  }
 
   let max = Math.max(...numbers);
   let arr = new Array(max+1).fill(false);
@@ -143,54 +170,77 @@ function parseNumbers(s) {
   return arr;
 }
 
-function filterChanged() {
+function parseBouncesFilter() {
   let numbers;
   try {
-    let s = document.getElementById('filter').value;
+    let s = document.getElementById('bounces_filter').value;
     numbers = parseNumbers(s);
   } catch(e) {
     console.log(e);
     return;
   }
 
-  // minima = [];
-  // data.forEach(function(d) {
-  //   let minimum = {
-  //     numBounces : d.n,
-  //     energy : d.E,
-  //     pr : d.pr,
-  //     ptheta : d.ptheta,
-  //     pphi : d.pphi,
-  //     rocking : d.rocking,
-  //     phase : d.phase,
-  //     t : d.period,
-  //   };
-  //   minima.push(minimum);
-  // });
+  if (numbers.length > 0) {
+    filter.bounces = numbers;
+  } else {
+    filter.bounces = null;
+  }
+}
 
-  // minima = minima.sort((a,b) => a.energy-b.energy);
-  
-  // minima = minima.filter(d => {
-  //   // return numbers.indexOf(d.numBounces) > -1;
-  //   return numbers[d.numBounces];
-  // });
+function parseRockingFilter() {
+  let numbers;
+  try {
+    let s = document.getElementById('rocking_filter').value;
+    numbers = parseNumbers(s);
+  } catch(e) {
+    console.log(e);
+    return;
+  }
 
-  minima = data.filter(d => {
-    return numbers[d.numBounces];
+  if (numbers.length > 0) {
+    filter.rocking = numbers;
+  } else {
+    filter.rocking = null;
+  }
+}
+
+function parsePhaseFilter() {
+  let radios = document.getElementsByName('phaseFilter');
+  radios.forEach(r => {
+    if (r.checked) {
+      filter.phase = +r.value;
+    }
   });
+  if (filter.phase == -1) {
+    filter.phase = null;
+  }
+}
 
+function bouncesFilterChanged() {
+  parseBouncesFilter();
+  updateVis();
+}
+
+function rockingFilterChanged() {
+  parseRockingFilter();
+  updateVis();
+}
+
+function phaseFilterChanged() {
+  parsePhaseFilter();
   updateVis();
 }
 
 function init() {
-  // Read the dataset
+  // Read the dataset file
   let dataset = "bifurcation.json";
   d3.json(dataset)
     .then(function(d) {
-      // data = d;
-
-      data = [];
+      allStates = [];
       d.forEach(function(s) {
+        // Calculate the phase because sometimes the phase in the
+        // data is incorrect. Not sure why.
+        let calcPhase = (s.ptheta * s.pphi < 0) ? 0 : 1;
         let state = {
           numBounces : s.n,
           energy : s.E,
@@ -198,12 +248,16 @@ function init() {
           ptheta : s.ptheta,
           pphi : s.pphi,
           rocking : s.rocking,
-          phase : s.phase,
+          // phase : s.phase,
+          phase : calcPhase,
           t : s.period,
         };
-        data.push(state);
+        allStates.push(state);
       });
 
-      filterChanged();
+      // filterChanged();
+      parseBouncesFilter();
+      parseRockingFilter();
+      updateVis();
     });
 }
