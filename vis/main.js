@@ -99,8 +99,11 @@ function updateVis() {
     .append("circle")
     .attr("cx", function(d) { return xoffset + eScale(d.energy); })
     .attr("cy", function(d) { return yScale(d.pphi); })
-    .attr("fill", d => color(d.numBounces))
-    .attr("stroke", 'none')
+    .attr("fill", d => d.phase == 0 ? color(d.numBounces) : 'none')
+    // .attr("fill", 'none')
+    .attr("stroke", d => color(d.numBounces))
+    .attr("stroke-width", d => color(d.numBounces))
+    // .attr("stroke", 'none')
     .attr("r", 3)
     .on("click", function() {
       console.log(this);
