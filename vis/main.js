@@ -19,6 +19,10 @@ function updateVis() {
     if (include && filter.bounces != null) {
       include = filter.bounces[d.numBounces];
     }
+    // Filter everything out if bounces is empty
+    if (filter.bounces == null) {
+      include = false;
+    }
     if (include && filter.rocking != null) {
       include = filter.rocking[d.rocking];
     }
@@ -99,14 +103,16 @@ function updateVis() {
     .append("circle")
     .attr("cx", function(d) { return xoffset + eScale(d.energy); })
     .attr("cy", function(d) { return yScale(d.pphi); })
-    .attr("fill", d => d.phase == 0 ? color(d.numBounces) : 'none')
+    // .attr("fill", d => d.phase == 0 ? color(d.numBounces) : 'none')
+    .attr("fill", d => color(d.numBounces))
+    .attr("fill-opacity", d => d.phase == 0 ? 1 : 0.2)
     // .attr("fill", 'none')
     .attr("stroke", d => color(d.numBounces))
     .attr("stroke-width", d => color(d.numBounces))
     // .attr("stroke", 'none')
     .attr("r", 3)
     .on("click", function() {
-      console.log(this);
+      // console.log(this);
       d3.select(this).attr("r", 6);
     })
     .append("title")
@@ -115,28 +121,28 @@ function updateVis() {
           `rocking = ${d.rocking} phase = ${d.phase} t = ${d.t}`)
   ;
 
-  //----------------------------------------
-  // legend
-  //----------------------------------------
-  let legendVals = [];
-  states.forEach(d => legendVals.push(d.numBounces));
-  legendVals = Array.from(new Set(legendVals)).reverse();
+  // //----------------------------------------
+  // // legend
+  // //----------------------------------------
+  // let legendVals = [];
+  // states.forEach(d => legendVals.push(d.numBounces));
+  // legendVals = Array.from(new Set(legendVals)).reverse();
 
-  d3.select('.legend').selectAll('*').remove();
-  let legend = d3.select('.legend')
-    .selectAll("legend")
-    .data(legendVals);
-  p = legend.enter()
-    .append("div")
-    .attr("class","legend-div")
-    .append("p")
-    .attr("class","legend-text");
-  p.append("span")
-    .attr("class","key-dot")
-    // .style("background", (d,i) => googleColors[i] );
-    // .style("background", (d,i) => googleColors[d] );
-    .style("background", (d,i) => color(d) );
-  p.insert("text").text(d => d);
+  // d3.select('.legend').selectAll('*').remove();
+  // let legend = d3.select('.legend')
+  //   .selectAll("legend")
+  //   .data(legendVals);
+  // p = legend.enter()
+  //   .append("div")
+  //   .attr("class","legend-div")
+  //   .append("p")
+  //   .attr("class","legend-text");
+  // p.append("span")
+  //   .attr("class","key-dot")
+  //   // .style("background", (d,i) => googleColors[i] );
+  //   // .style("background", (d,i) => googleColors[d] );
+  //   .style("background", (d,i) => color(d) );
+  // p.insert("text").text(d => d);
 }
 
 // Returns an array of booleans. If the number i is included in s and the
@@ -236,10 +242,13 @@ function phaseFilterChanged() {
 
 function init() {
   // Read the dataset file
-  let dataset = "bifurcation.json";
+  let dataset = "states.json";
   d3.json(dataset)
     .then(function(d) {
       allStates = [];
+      let bifurcationStates = [];
+      let cur_m = -1;
+      let cur_n = -1;
       d.forEach(function(s) {
         // Calculate the phase because sometimes the phase in the
         // data is incorrect. Not sure why.
@@ -256,7 +265,14 @@ function init() {
           t : s.period,
         };
         allStates.push(state);
+
+        if (s.rocking != cur_m || s.n != cur_n) {
+          bifurcationStates.push(state);
+          cur_m = s.rocking;
+          cur_n = s.n;
+        }
       });
+      // allStates = bifurcationStates;
 
       // filterChanged();
       parseBouncesFilter();
