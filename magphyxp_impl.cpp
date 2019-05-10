@@ -492,7 +492,7 @@ Minimum calculate_min_impl(double ptheta, double pphi,
             energy,
             s->fval,
             params.t,
-            rocking_number,
+            int(rocking_number/2),
             rocking_in_phase
     };
   } else if (vary == VARY_PTHETA_ENERGY) {
@@ -506,7 +506,7 @@ Minimum calculate_min_impl(double ptheta, double pphi,
             gsl_vector_get(s->x, 1),
             s->fval,
             params.t,
-            rocking_number,
+            int(rocking_number/2),
             rocking_in_phase
     };
   }
