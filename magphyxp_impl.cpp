@@ -469,7 +469,7 @@ Minimum calculate_min_impl(double ptheta, double pphi,
   //                 // energy,
   //                 s->fval };
   // cout << "t = " << params.t << endl;
-  printf("t = %.18f\n", params.t);
+  // printf("t = %.18f\n", params.t);
 
   // const double ptheta = gsl_vector_get(s->x, 0);
   // const double pphi = gsl_vector_get(s->x, 1);
@@ -510,7 +510,7 @@ Minimum calculate_min_impl(double ptheta, double pphi,
             rocking_in_phase
     };
   }
-  printf("pr = %lf\n", pr);
+  // printf("pr = %lf\n", pr);
 
   gsl_multimin_fminimizer_free (s);
   gsl_vector_free (x);
