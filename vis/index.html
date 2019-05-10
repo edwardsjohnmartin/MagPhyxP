@@ -2,7 +2,7 @@
 <html lang="en">
     <head>
         <meta charset="utf-8">
-        <title>MagPhyx Bifurcations</title>
+        <title>MagPhyx States</title>
         <script src="https://d3js.org/d3.v5.min.js"></script>
         <link rel="stylesheet"  href="style.css">
 	<!--style type="text/css"></style-->
@@ -16,14 +16,47 @@
     <body id="body" onload="init()">
       <div>
         <br>Click on a state to see its behavior.
-        <br><br>Num bounces filter:
-        <input type="text" id="filter" oninput="filterChanged()" size="12" value="1-3, 6, 9-10"/>
+        <br><br>
+        <input type="checkbox" id="unique_states" value="Bike" onchange="uniqueStatesChanged()">
+        <label for="unique_states">Unique states only</label>
+        <br>
+        Num bounces filter:
+        <input type="text" id="bounces_filter" oninput="bouncesFilterChanged()" size="12" value="1-3, 6, 9-10"/>
+        <br>
+        Rocking number filter:
+        <input type="text" id="rocking_filter" oninput="rockingFilterChanged()" size="12" value=""/>
+        <br>
+
+        Phase filter:
+        <br>
+
+        &nbsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="phaseFilter"
+                                       id="outphase" value="0"
+                                       onchange="phaseFilterChanged()">
+        <label for="outphase">out of phase</label>
+        <br>
+
+        &nbsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="phaseFilter"
+                                       id="inphase" value="1"
+                                       onchange="phaseFilterChanged()">
+
+        <label for="inphase">in phase</label>
+        <br>
+
+        &nbsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="phaseFilter"
+                                       id="allphase" value="-1" checked
+                                       onchange="phaseFilterChanged()">
+        <label for="allphase">all</label>
       </div>
 
+      <br>
       <div class="legend"></div>
+      <br>
 
-      <svg width="800" height="700" id="svg"></svg>
+      <svg width="800" height="700" id="states_svg"></svg>
+      <svg width="800" height="700" id="spider_web_svg"></svg>
 
-      <script src="main.js?1"></script>
+      <script src="main.js?4"></script>
+      <script src="spiderWeb.js?4"></script>
     </body>
 </html>
