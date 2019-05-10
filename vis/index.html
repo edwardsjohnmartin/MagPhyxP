@@ -17,6 +17,9 @@
       <div>
         <br>Click on a state to see its behavior.
         <br><br>
+        <input type="checkbox" id="unique_states" value="Bike" onchange="uniqueStatesChanged()">
+        <label for="unique_states">Unique states only</label>
+        <br>
         Num bounces filter:
         <input type="text" id="bounces_filter" oninput="bouncesFilterChanged()" size="12" value="1-3, 6, 9-10"/>
         <br>
@@ -50,8 +53,10 @@
       <div class="legend"></div>
       <br>
 
-      <svg width="800" height="700" id="svg"></svg>
+      <svg width="800" height="700" id="states_svg"></svg>
+      <svg width="800" height="700" id="spider_web_svg"></svg>
 
       <script src="main.js?3"></script>
+      <script src="spiderWeb.js?3"></script>
     </body>
 </html>

@@ -1,6 +1,10 @@
 let googleColors = ["#3366cc", "#dc3912", "#ff9900", "#109618", "#990099", "#0099c6", "#dd4477", "#66aa00", "#b82e2e", "#316395", "#994499", "#22aa99", "#aaaa11", "#6633cc", "#e67300", "#8b0707", "#651067", "#329262", "#5574a6", "#3b3eac"];
 
-let allStates;
+let allStatesAll;
+let allStatesUnique;
+let bifurcationStatesAll;
+let bifurcationStatesUnique;
+
 let filter = {
   bounces : null,
   rocking : null,
@@ -12,7 +16,21 @@ function color(i) {
   return googleColors[i%n];
 }
 
-function updateVis() {
+function power_of_2(n) {
+ if (typeof n !== 'number') 
+      return 'Not a number'; 
+
+    return n && (n & (n - 1)) === 0;
+}
+
+function updateStatesVis() {
+  let allStates = allStatesAll;
+  let bifurcationStates = bifurcationStatesAll;
+  if (document.getElementById("unique_states").checked) {
+    allStates = allStatesUnique;
+    bifurcationStates = bifurcationStatesUnique;
+  }
+
   // Filter states
   states = allStates.filter(d => {
     let include = true;
@@ -48,46 +66,48 @@ function updateVis() {
   let minpphi = d3.min(allStates, d=>d.pphi);
   let maxpphi = d3.max(allStates, d=>d.pphi);
 
-  let scale = d3.scaleLinear()
-    .domain([minE, maxE])
-    .range([minx, maxx]);  
-  let x_axis = d3.axisBottom().scale(scale);
+  // let tempScale = d3.scaleLinear()
+  //   .domain([minE, maxE])
+  //   .range([minx, maxx]);  
+  // let x_axis = d3.axisBottom().scale(tempScale);
 
   let eScale = d3.scaleLinear()
     .domain([minE, maxE])
     .range([minx, maxx]);
-  let yScale = d3.scaleLinear()
+  let pphiScale = d3.scaleLinear()
     .domain([minpphi, maxpphi])
     .range([maxy, miny]);
-  let y_axis = d3.axisLeft().scale(yScale);
+
+  let x_axis = d3.axisBottom().scale(eScale);
+  let y_axis = d3.axisLeft().scale(pphiScale);
 
   // console.log("minE, maxE = " + minE + " " + maxE);
 
   // let maxNumBounces = d3.max(states, m => m.numBounces);
 
-  svg = d3.select("#svg");
+  svg = d3.select("#states_svg");
   svg.selectAll('*').remove();
 
   let xoffset = 60;
 
   // x axis
   svg.append("g")
-    .attr('transform', `translate(${xoffset}, ${yScale(minpphi)+20})`)
+    .attr('transform', `translate(${xoffset}, ${pphiScale(minpphi)+20})`)
     .call(x_axis)
   ;
   svg.append("g")
-    .attr('transform', `translate(${xoffset + (minx+maxx)/2}, ${yScale(minpphi)+60})`)
+    .attr('transform', `translate(${xoffset + (minx+maxx)/2}, ${pphiScale(minpphi)+60})`)
     .append('text')
     .html('energy')
   ;
 
   // y axis
   svg.append("g")
-    .attr('transform', `translate(${xoffset}, ${yScale(maxpphi)-20})`)
+    .attr('transform', `translate(${xoffset}, ${pphiScale(maxpphi)-20})`)
     .call(y_axis)
   ;
   svg.append("g")
-    .attr('transform', `translate(20, ${yScale((maxpphi-minpphi)/2)}) rotate(${-90})`)
+    .attr('transform', `translate(20, ${pphiScale((maxpphi-minpphi)/2)}) rotate(${-90})`)
     .append('text')
     .html('p&phi;')
   ;
@@ -102,13 +122,13 @@ function updateVis() {
     .attr("target", "_magphyx")
     .append("circle")
     .attr("cx", function(d) { return xoffset + eScale(d.energy); })
-    .attr("cy", function(d) { return yScale(d.pphi); })
+    .attr("cy", function(d) { return pphiScale(d.pphi); })
     // .attr("fill", d => d.phase == 0 ? color(d.numBounces) : 'none')
     .attr("fill", d => color(d.numBounces))
     .attr("fill-opacity", d => d.phase == 0 ? 1 : 0.2)
     // .attr("fill", 'none')
     .attr("stroke", d => color(d.numBounces))
-    .attr("stroke-width", d => color(d.numBounces))
+    .attr("stroke-width", d => 1)
     // .attr("stroke", 'none')
     .attr("r", 3)
     .on("click", function() {
@@ -118,7 +138,7 @@ function updateVis() {
     .append("title")
     .text(d => `bounces = ${d.numBounces} energy = ${d.energy}\n` +
           `ptheta = ${d.ptheta} pphi = ${d.pphi}\n` +
-          `rocking = ${d.rocking} phase = ${d.phase} t = ${d.t}`)
+          `rocking = ${d.rocking} phase = ${d.phase} T = ${d.T}`)
   ;
 
   // //----------------------------------------
@@ -227,26 +247,31 @@ function parsePhaseFilter() {
 
 function bouncesFilterChanged() {
   parseBouncesFilter();
-  updateVis();
+  updateStatesVis();
 }
 
 function rockingFilterChanged() {
   parseRockingFilter();
-  updateVis();
+  updateStatesVis();
 }
 
 function phaseFilterChanged() {
   parsePhaseFilter();
-  updateVis();
+  updateStatesVis();
+}
+
+function uniqueStatesChanged() {
+  updateStatesVis();
+  updateSpiderWebVis();
 }
 
 function init() {
   // Read the dataset file
-  let dataset = "states.json";
+  let dataset = "states_all.json";
   d3.json(dataset)
     .then(function(d) {
-      allStates = [];
-      let bifurcationStates = [];
+      allStatesAll = [];
+      bifurcationStatesAll = [];
       let cur_m = -1;
       let cur_n = -1;
       d.forEach(function(s) {
@@ -262,21 +287,60 @@ function init() {
           rocking : s.rocking,
           // phase : s.phase,
           phase : calcPhase,
-          t : s.period,
+          T : s.period,
         };
-        allStates.push(state);
+        allStatesAll.push(state);
 
         if (s.rocking != cur_m || s.n != cur_n) {
-          bifurcationStates.push(state);
+          if (power_of_2(s.n)) {
+            bifurcationStatesAll.push(state);
+          }
           cur_m = s.rocking;
           cur_n = s.n;
         }
       });
-      // allStates = bifurcationStates;
-
-      // filterChanged();
       parseBouncesFilter();
       parseRockingFilter();
-      updateVis();
+      updateStatesVis();
+      updateSpiderWebVis();
+    });
+
+  dataset = "states_unique.json";
+  d3.json(dataset)
+    .then(function(d) {
+      allStatesUnique = [];
+      bifurcationStatesUnique = [];
+      let cur_m = -1;
+      let cur_n = -1;
+      d.forEach(function(s) {
+        // Calculate the phase because sometimes the phase in the
+        // data is incorrect. Not sure why.
+        let calcPhase = (s.ptheta * s.pphi < 0) ? 0 : 1;
+        let state = {
+          numBounces : s.n,
+          energy : s.E,
+          pr : s.pr,
+          ptheta : s.ptheta,
+          pphi : s.pphi,
+          rocking : s.rocking,
+          // phase : s.phase,
+          phase : calcPhase,
+          T : s.period,
+        };
+        allStatesUnique.push(state);
+
+        if (s.rocking != cur_m || s.n != cur_n) {
+          if (power_of_2(s.n)) {
+            bifurcationStatesUnique.push(state);
+          }
+          cur_m = s.rocking;
+          cur_n = s.n;
+        }
+      });
+
+      parseBouncesFilter();
+      parseRockingFilter();
+      updateStatesVis();
+      updateSpiderWebVis();
     });
 }
