@@ -40,6 +40,8 @@ function updateSpiderWebVis() {
   // });
   states = bifurcationStates;
 
+  // states.forEach(s => { console.log(s); });
+
   let minx = 20;
   let maxx = 680;
   let miny = 20;
@@ -63,10 +65,10 @@ function updateSpiderWebVis() {
     .range([maxy, miny]);
   let TScale = d3.scaleLinear()
     // .domain([minT, maxT])
-    .domain([minT, 40])
+    .domain([minT, 50])
     .range([minx, maxx]);
   let yScale = d3.scaleLog()
-    .domain([0.1, 400])
+    .domain([0.1, 50])
     .range([maxy, miny]);
 
   let xScale = TScale;

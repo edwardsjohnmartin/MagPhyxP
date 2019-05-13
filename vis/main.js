@@ -23,16 +23,7 @@ function power_of_2(n) {
     return n && (n & (n - 1)) === 0;
 }
 
-function updateStatesVis() {
-  let allStates = allStatesAll;
-  let bifurcationStates = bifurcationStatesAll;
-  if (document.getElementById("unique_states").checked) {
-    allStates = allStatesUnique;
-    bifurcationStates = bifurcationStatesUnique;
-  }
-
-  // Filter states
-  states = allStates.filter(d => {
+function filterState(d) {
     let include = true;
     if (include && filter.bounces != null) {
       include = filter.bounces[d.numBounces];
@@ -48,7 +39,19 @@ function updateStatesVis() {
       include = (filter.phase == d.phase);
     }
     return include;
-  });
+}
+
+function updateStatesVis() {
+  let allStates = allStatesAll;
+  let bifurcationStates = bifurcationStatesAll;
+  if (document.getElementById("unique_states").checked) {
+    allStates = allStatesUnique;
+    bifurcationStates = bifurcationStatesUnique;
+  }
+
+  // Filter states
+  states = allStates.filter(filterState);
+  bStates = bifurcationStates.filter(filterState);
 
   // if (states.length == 0) return;
 
@@ -163,6 +166,51 @@ function updateStatesVis() {
   //   // .style("background", (d,i) => googleColors[d] );
   //   .style("background", (d,i) => color(d) );
   // p.insert("text").text(d => d);
+
+  //----------------------------------------
+  // rocking numbers
+  //----------------------------------------
+  svg.selectAll('.rocking-label')
+    .data(bStates)
+    .enter()
+    .append('text')
+    .text(d => (d.phase == 0) ? '-'+d.rocking.toString() : '+'+d.rocking.toString())
+    .attr('font-size', '12px')
+    .attr("x", function(d) { return xoffset + eScale(d.energy); })
+    .attr("y", function(d) { return pphiScale(d.pphi)+15; })
+    .attr('class', 'rocking-label')
+    .style("text-anchor", "middle");
+}
+
+// Returns an array of booleans. If the number i is included in s and the
+// return value is numbers, then numbers[i] == true.
+function parseNumbersRaw(s) {
+  // Parse the filter string
+  let numbers = [];
+  let tokens = s.split(',');
+  tokens.forEach((y,i) => {
+    y = y.trim();
+    if (y.length > 0) {
+      let startend = y.split('-');
+      let start = +startend[0];
+      let end = start;
+      if (startend.length > 1) {
+        end = +startend[1];
+      }
+      if (start != start || end != end) {
+        throw "failed to parse filter";
+      }
+      for (let i = start; i <= end; ++i) {
+        numbers.push(i);
+      }
+    }
+  });
+
+  if (numbers.length == 0) {
+    return new Array(0);
+  }
+
+  return numbers;
 }
 
 // Returns an array of booleans. If the number i is included in s and the
@@ -266,6 +314,8 @@ function uniqueStatesChanged() {
 }
 
 function init() {
+  document.onkeydown = keyDown;
+
   // Read the dataset file
   let dataset = "states_all.json";
   d3.json(dataset)
@@ -274,6 +324,7 @@ function init() {
       bifurcationStatesAll = [];
       let cur_m = -1;
       let cur_n = -1;
+      let cur_phase = -1;
       d.forEach(function(s) {
         // Calculate the phase because sometimes the phase in the
         // data is incorrect. Not sure why.
@@ -291,12 +342,13 @@ function init() {
         };
         allStatesAll.push(state);
 
-        if (s.rocking != cur_m || s.n != cur_n) {
-          if (power_of_2(s.n)) {
+        if (s.rocking != cur_m || s.n != cur_n || calcPhase != cur_phase) {
+          // if (power_of_2(s.n)) {
             bifurcationStatesAll.push(state);
-          }
+          // }
           cur_m = s.rocking;
           cur_n = s.n;
+          cur_phase = calcPhase;
         }
       });
       parseBouncesFilter();
@@ -312,6 +364,7 @@ function init() {
       bifurcationStatesUnique = [];
       let cur_m = -1;
       let cur_n = -1;
+      let cur_phase = -1;
       d.forEach(function(s) {
         // Calculate the phase because sometimes the phase in the
         // data is incorrect. Not sure why.
@@ -329,13 +382,21 @@ function init() {
         };
         allStatesUnique.push(state);
 
-        if (s.rocking != cur_m || s.n != cur_n) {
-          if (power_of_2(s.n)) {
+        if (s.rocking != cur_m || s.n != cur_n || calcPhase != cur_phase) {
+          // if (power_of_2(s.n)) {
             bifurcationStatesUnique.push(state);
-          }
+          // }
           cur_m = s.rocking;
           cur_n = s.n;
+          cur_phase = calcPhase;
         }
+        // if (s.rocking != cur_m || s.n != cur_n) {
+        //   // if (power_of_2(s.n)) {
+        //     bifurcationStatesUnique.push(state);
+        //   // }
+        //   cur_m = s.rocking;
+        //   cur_n = s.n;
+        // }
       });
 
       parseBouncesFilter();
@@ -343,4 +404,44 @@ function init() {
       updateStatesVis();
       updateSpiderWebVis();
     });
+}
+
+function keyDown(e) {
+  // if (e.target != document.body) {
+  //   if (e.target.type != "button") {
+  //     return;
+  //   }
+  // }
+  let numbers;
+
+  switch (e.keyCode) {
+  case "J".charCodeAt(0):
+  case 37:
+    // Down
+    try {
+      let s = document.getElementById('bounces_filter').value;
+      numbers = parseNumbersRaw(s);
+    } catch(e) {
+      numbers = [2];
+      // return;
+    }
+    if (numbers.length == 0) numbers = [2];
+    if (numbers[0] < 2) numbers = [2];
+    document.getElementById('bounces_filter').value = numbers[0]-1;
+    bouncesFilterChanged();
+    break;
+  case "K".charCodeAt(0):
+  case 39:
+    // Up
+    try {
+      let s = document.getElementById('bounces_filter').value;
+      numbers = parseNumbersRaw(s);
+    } catch(e) {
+      numbers = [0];
+    }
+    if (numbers.length == 0) numbers = [0];
+    document.getElementById('bounces_filter').value = numbers[0]+1;
+    bouncesFilterChanged();
+    break;
+  }
 }
