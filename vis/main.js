@@ -7,9 +7,11 @@ let bifurcationStatesUnique;
 
 let filter = {
   bounces : null,
-  rocking : null,
+  ptheta_rocking : null,
   phase : null
 };
+
+let radius = 3;
 
 function color(i) {
   const n = googleColors.length;
@@ -32,13 +34,57 @@ function filterState(d) {
     if (filter.bounces == null) {
       include = false;
     }
-    if (include && filter.rocking != null) {
-      include = filter.rocking[d.rocking];
+    if (include && filter.ptheta_rocking != null) {
+      include = filter.ptheta_rocking[d.ptheta_rocking];
     }
     if (include && filter.phase != null) {
       include = (filter.phase == d.phase);
     }
     return include;
+}
+
+function getToolTipText(d) {
+  return `bounces = ${d.numBounces} energy = ${d.energy}\n` +
+    `ptheta = ${d.ptheta} pphi = ${d.pphi}\n` +
+    `ptheta_rocking = ${d.ptheta_rocking} pphi_rocking = ${d.pphi_rocking}\n` +
+    `phase = ${d.phase} T = ${d.T}`
+}
+
+function getIdString(d) {
+  return `(${d.ptheta_rocking},${d.pphi_rocking},${d.numBounces},${d.phase==0?'+':'-'})`;
+}
+
+function getDetailsHTML(d) {
+  // return `<table>` +
+  //   `<tr><td style="text-align:right">bounces:</td><td>${d.numBounces}</td></tr>` +
+  //   `<tr><td style="text-align:right">energy:</td><td>${d.energy}</td></tr>` +
+  //   `<tr><td style="text-align:right">ptheta:</td><td>${d.ptheta}</td></tr>` +
+  //   `<tr><td style="text-align:right">pphi:</td><td>${d.pphi}</td></tr>` +
+  //   `<tr><td style="text-align:right">ptheta_rocking:</td><td>${d.ptheta_rocking}</td></tr>` +
+  //   `<tr><td style="text-align:right">pphi_rocking:</td><td>${d.pphi_rocking}</td></tr>` +
+  //   `<tr><td style="text-align:right">phase:</td><td>${d.phase}</td></tr>` +
+  //   `<tr><td style="text-align:right">T:</td><td>${d.T}</td></tr>` +
+  //   `</table>`;
+
+  return `<table>` +
+    `<tr><td>bounces:</td><td>${d.numBounces}</td></tr>` +
+    `<tr><td>energy:</td><td>${d.energy}</td></tr>` +
+    `<tr><td>ptheta:</td><td>${d.ptheta}</td></tr>` +
+    `<tr><td>pphi:</td><td>${d.pphi}</td></tr>` +
+    `<tr><td>p&theta; rocking:</td><td>${d.ptheta_rocking}</td></tr>` +
+    `<tr><td>p&phi; rocking:</td><td>${d.pphi_rocking}</td></tr>` +
+    `<tr><td>phase:</td><td>${d.phase}</td></tr>` +
+    `<tr><td>T:</td><td>${d.T}</td></tr>` +
+    `</table>`;
+  // return `<table>
+  //   <tr><td>bounces:</td><td>${d.numBounces}</td></tr>` +
+  //   `energy = ${d.energy}<br>` +
+  //   `ptheta = ${d.ptheta}<br>pphi = ${d.pphi}<br>` +
+  //   `ptheta_rocking = ${d.ptheta_rocking}<br>` +
+  //   `pphi_rocking = ${d.pphi_rocking}<br>` +
+  //   `phase = ${d.phase}<br>` +
+  //   `T = ${d.T}` +
+  //   `</table>`;
 }
 
 function updateStatesVis() {
@@ -128,20 +174,24 @@ function updateStatesVis() {
     .attr("cy", function(d) { return pphiScale(d.pphi); })
     // .attr("fill", d => d.phase == 0 ? color(d.numBounces) : 'none')
     .attr("fill", d => color(d.numBounces))
-    .attr("fill-opacity", d => d.phase == 0 ? 1 : 0.2)
-    // .attr("fill", 'none')
+    .attr("fill-opacity", d => {
+      return d.phase == 0 ?
+        ((d.ptheta_rocking == d.pphi_rocking) ? 1 : 0.6) :
+        0.1})
     .attr("stroke", d => color(d.numBounces))
     .attr("stroke-width", d => 1)
-    // .attr("stroke", 'none')
-    .attr("r", 3)
+    .attr("r", radius)
     .on("click", function() {
       // console.log(this);
       d3.select(this).attr("r", 6);
     })
+    .on("mouseover", handleMouseOver)
+    .on("mouseout", handleMouseOut)
     .append("title")
-    .text(d => `bounces = ${d.numBounces} energy = ${d.energy}\n` +
-          `ptheta = ${d.ptheta} pphi = ${d.pphi}\n` +
-          `rocking = ${d.rocking} phase = ${d.phase} T = ${d.T}`)
+    // .text(d => `bounces = ${d.numBounces} energy = ${d.energy}\n` +
+    //       `ptheta = ${d.ptheta} pphi = ${d.pphi}\n` +
+    //       `ptheta_rocking = ${d.ptheta_rocking} pphi_rocking = ${d.pphi_rocking} phase = ${d.phase} T = ${d.T}`)
+    // .text(getToolTipText)
   ;
 
   // //----------------------------------------
@@ -167,19 +217,93 @@ function updateStatesVis() {
   //   .style("background", (d,i) => color(d) );
   // p.insert("text").text(d => d);
 
-  //----------------------------------------
-  // rocking numbers
-  //----------------------------------------
-  svg.selectAll('.rocking-label')
-    .data(bStates)
-    .enter()
-    .append('text')
-    .text(d => (d.phase == 0) ? '-'+d.rocking.toString() : '+'+d.rocking.toString())
-    .attr('font-size', '12px')
-    .attr("x", function(d) { return xoffset + eScale(d.energy); })
-    .attr("y", function(d) { return pphiScale(d.pphi)+15; })
-    .attr('class', 'rocking-label')
-    .style("text-anchor", "middle");
+  // //----------------------------------------
+  // // rocking numbers
+  // //----------------------------------------
+  // svg.selectAll('.rocking-label')
+  //   .data(bStates)
+  //   .enter()
+  //   .append('text')
+  //   // .text(d => (d.phase == 0) ? '-'+d.rocking.toString() : '+'+d.rocking.toString())
+  //   .text(d => d.ptheta_rocking.toString() + ',' + d.pphi_rocking.toString() + ',' + ((d.phase == 0) ? '-':'+'))
+  //   .attr('font-size', '12px')
+  //   .attr("x", function(d) { return xoffset + eScale(d.energy); })
+  //   .attr("y", function(d) { return pphiScale(d.pphi)+15; })
+  //   .attr('class', 'rocking-label')
+  //   .style("text-anchor", "middle");
+}
+
+function handleMouseOver(d, i) {  // Add interactivity
+  // d3.select(this).attr("r", 6);
+  var details = document.getElementById('details');
+  details.innerHTML = getDetailsHTML(d);
+
+  // Use D3 to select element, change color and size
+  d3.select(this).attr('r', radius*2);
+    // fill: "orange",
+  //   r: radius * 2
+  // });
+
+  svg = d3.select("#states_svg");
+
+  let cx = d3.select(this).attr('cx');
+  let cy = d3.select(this).attr('cy');
+  // let t = getDetailsHTML(d);
+  let t = getIdString(d);
+
+  // Create an id for text so we can select it later for
+  // removing on mouseout
+  // let id = "t" + d.x + "-" + d.y + "-" + i;
+  let id = 'id-' + d.ptheta_rocking + "-" + d.pphi_rocking + "-" +
+    d.numBounces + "-" + d.phase + "-" + i;
+
+  // Specify where to put label of text
+  svg.append("text")
+    .attr('id', id)
+    .attr('class', id)
+    // .attr('x', function() { return xScale(d.x) - 30; })
+    // .attr('y', function() { return yScale(d.y) - 15; })
+    .attr('x', function() { return cx - 30; })
+    .attr('y', function() { return cy - 15; })
+    .text(t)
+    // .text(function() {
+    //   return [d.x, d.y];  // Value of the text
+    // });
+    // .style("fill", "#FFE6F0")
+  ;
+
+  var ctx = document.getElementById("states_svg");
+  let textElm = document.getElementById(id);
+  let SVGRect = textElm.getBBox();
+
+  var rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+  rect.setAttribute("x", SVGRect.x);
+  rect.setAttribute("y", SVGRect.y);
+  rect.setAttribute("width", SVGRect.width);
+  rect.setAttribute("height", SVGRect.height);
+  rect.setAttribute("fill", "#ffffff");
+  rect.setAttribute('class', id);
+  ctx.insertBefore(rect, textElm);
+}
+
+function handleMouseOut(d, i) {
+  let id = 'id-' + d.ptheta_rocking + "-" + d.pphi_rocking + "-" +
+    d.numBounces + "-" + d.phase + "-" + i;
+
+  var details = document.getElementById('details');
+  details.innerHTML = '';
+
+  // Use D3 to select element, change color back to normal
+  d3.select(this).attr('r', radius);
+  // d3.select(this).attr({
+  //   // fill: "black",
+  //   r: radius
+  // });
+
+  // Select text by id and then remove
+  // d3.select("#t" + d.x + "-" + d.y + "-" + i).remove();
+  // d3.selectAll(".t" + d.x + "-" + d.y + "-" + i).remove();
+  d3.selectAll("." + id).remove();
 }
 
 // Returns an array of booleans. If the number i is included in s and the
@@ -275,9 +399,9 @@ function parseRockingFilter() {
   }
 
   if (numbers.length > 0) {
-    filter.rocking = numbers;
+    filter.ptheta_rocking = numbers;
   } else {
-    filter.rocking = null;
+    filter.ptheta_rocking = null;
   }
 }
 
@@ -322,8 +446,9 @@ function init() {
     .then(function(d) {
       allStatesAll = [];
       bifurcationStatesAll = [];
-      let cur_m = -1;
-      let cur_n = -1;
+      let cur_i = -1;
+      let cur_j = -1;
+      let cur_k = -1;
       let cur_phase = -1;
       d.forEach(function(s) {
         // Calculate the phase because sometimes the phase in the
@@ -335,19 +460,21 @@ function init() {
           pr : s.pr,
           ptheta : s.ptheta,
           pphi : s.pphi,
-          rocking : s.rocking,
+          ptheta_rocking : s.ptheta_rocking,
+          pphi_rocking : s.pphi_rocking,
           // phase : s.phase,
           phase : calcPhase,
           T : s.period,
         };
         allStatesAll.push(state);
 
-        if (s.rocking != cur_m || s.n != cur_n || calcPhase != cur_phase) {
+        if (s.ptheta_rocking != cur_i || s.pphi_rocking != cur_j || s.n != cur_k || calcPhase != cur_phase) {
           // if (power_of_2(s.n)) {
             bifurcationStatesAll.push(state);
           // }
-          cur_m = s.rocking;
-          cur_n = s.n;
+          cur_i = s.ptheta_rocking;
+          cur_j = s.pphi_rocking;
+          cur_k = s.n;
           cur_phase = calcPhase;
         }
       });
@@ -362,8 +489,9 @@ function init() {
     .then(function(d) {
       allStatesUnique = [];
       bifurcationStatesUnique = [];
-      let cur_m = -1;
-      let cur_n = -1;
+      let cur_i = -1;
+      let cur_j = -1;
+      let cur_k = -1;
       let cur_phase = -1;
       d.forEach(function(s) {
         // Calculate the phase because sometimes the phase in the
@@ -375,28 +503,30 @@ function init() {
           pr : s.pr,
           ptheta : s.ptheta,
           pphi : s.pphi,
-          rocking : s.rocking,
+          ptheta_rocking : s.ptheta_rocking,
+          pphi_rocking : s.pphi_rocking,
           // phase : s.phase,
           phase : calcPhase,
           T : s.period,
         };
+        if (s.ptheta_rocking != s.ptheta_rocking) {
+          console.log(s);
+        }
+        if (state.ptheta_rocking != state.ptheta_rocking) {
+          console.log(s);
+        }
+        
         allStatesUnique.push(state);
 
-        if (s.rocking != cur_m || s.n != cur_n || calcPhase != cur_phase) {
+        if (s.ptheta_rocking != cur_i || s.pphi_rocking != cur_j || s.n != cur_k || calcPhase != cur_phase) {
           // if (power_of_2(s.n)) {
             bifurcationStatesUnique.push(state);
           // }
-          cur_m = s.rocking;
-          cur_n = s.n;
+          cur_i = s.ptheta_rocking;
+          cur_j = s.pphi_rocking;
+          cur_k = s.n;
           cur_phase = calcPhase;
         }
-        // if (s.rocking != cur_m || s.n != cur_n) {
-        //   // if (power_of_2(s.n)) {
-        //     bifurcationStatesUnique.push(state);
-        //   // }
-        //   cur_m = s.rocking;
-        //   cur_n = s.n;
-        // }
       });
 
       parseBouncesFilter();

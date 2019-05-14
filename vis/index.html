@@ -15,38 +15,46 @@
     </head>
     <body id="body" onload="init()">
       <div>
-        <br>Click on a state to see its behavior.
-        <br><br>
-        <input type="checkbox" id="unique_states" value="Bike" onchange="uniqueStatesChanged()">
-        <label for="unique_states">Unique states only</label>
-        <br>
-        Num bounces filter:
-        <input type="text" id="bounces_filter" oninput="bouncesFilterChanged()" size="12" value="1-3, 6, 9-10"/>
-        <br>
-        Rocking number filter:
-        <input type="text" id="rocking_filter" oninput="rockingFilterChanged()" size="12" value=""/>
-        <br>
+        <table><tr><td>
+              <br>Click on a state to see its behavior.
+              <br><br>
 
-        Phase filter:
-        <br>
+              <input type="checkbox" id="unique_states" value="Bike"
+                     onchange="uniqueStatesChanged()">
+              <label for="unique_states">Unique states only</label>
+              <br>
+              Num bounces filter:
+              <input type="text" id="bounces_filter" oninput="bouncesFilterChanged()" size="12" value="1-3, 6, 9-10"/>
+              <br>
+              Rocking number filter:
+              <input type="text" id="rocking_filter" oninput="rockingFilterChanged()" size="12" value=""/>
+              <br>
 
-        &nbsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="phaseFilter"
-                                       id="outphase" value="0"
-                                       onchange="phaseFilterChanged()">
-        <label for="outphase">out of phase</label>
-        <br>
+              Phase filter:
+              <br>
 
-        &nbsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="phaseFilter"
-                                       id="inphase" value="1"
-                                       onchange="phaseFilterChanged()">
+              &nbsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="phaseFilter"
+                                             id="outphase" value="0"
+                                             onchange="phaseFilterChanged()">
+              <label for="outphase">out of phase</label>
+              <br>
 
-        <label for="inphase">in phase</label>
-        <br>
+              &nbsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="phaseFilter"
+                                             id="inphase" value="1"
+                                             onchange="phaseFilterChanged()">
 
-        &nbsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="phaseFilter"
-                                       id="allphase" value="-1" checked
-                                       onchange="phaseFilterChanged()">
-        <label for="allphase">all</label>
+              <label for="inphase">in phase</label>
+              <br>
+
+              &nbsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="phaseFilter"
+                                             id="allphase" value="-1" checked
+                                             onchange="phaseFilterChanged()">
+              <label for="allphase">all</label>
+
+              <br><br>
+            </td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>
+              <div id="details"></div>
+        </table>
       </div>
 
       <br>
