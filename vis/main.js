@@ -87,6 +87,41 @@ function getDetailsHTML(d) {
   //   `</table>`;
 }
 
+function addCircle(svg_id, states) {
+  let svg = d3.select('#' + svg_id);
+
+  return svg.selectAll("circle")
+    .data(states)
+    .enter()
+    .append("a")
+    .attr("xlink:href", d =>
+          `http://edwardsjohnmartin.github.io/MagPhyx/` +
+          `?initparams=1,0,0,${d.pr},${d.ptheta},${d.pphi}`)
+    .attr("target", "_magphyx")
+    .append("circle")
+    // .attr("cx", function(d) { return xoffset + eScale(d.energy); })
+    // .attr("cy", function(d) { return pphiScale(d.pphi); })
+    // .attr("fill", d => d.phase == 0 ? color(d.numBounces) : 'none')
+    .attr("fill", d => color(d.numBounces))
+    .attr("fill-opacity", d => {
+      return d.phase == 0 ?
+        ((d.ptheta_rocking == d.pphi_rocking) ? 1 : 0.6) :
+        0.1})
+    .attr("stroke", d => color(d.numBounces))
+    .attr("stroke-width", d => 1)
+    .attr("r", radius)
+    .on("click", function() {
+      // console.log(this);
+      d3.select(this).attr("r", 6);
+    })
+    // .on("mouseover", handleMouseOver)
+    // .on("mouseout", handleMouseOut)
+    .on("mouseover", function(d,i) { handleMouseOver(d,i,svg_id,this); })
+    .on("mouseout", handleMouseOut)
+    // .append("title")
+  ;
+}
+
 function updateStatesVis() {
   let allStates = allStatesAll;
   let bifurcationStates = bifurcationStatesAll;
@@ -161,37 +196,34 @@ function updateStatesVis() {
     .html('p&phi;')
   ;
 
-  svg.selectAll("circle")
-    .data(states)
-    .enter()
-    .append("a")
-    .attr("xlink:href", d =>
-          `http://edwardsjohnmartin.github.io/MagPhyx/` +
-          `?initparams=1,0,0,${d.pr},${d.ptheta},${d.pphi}`)
-    .attr("target", "_magphyx")
-    .append("circle")
+  addCircle('states_svg', states)
+  // svg.selectAll("circle")
+  //   .data(states)
+  //   .enter()
+  //   .append("a")
+  //   .attr("xlink:href", d =>
+  //         `http://edwardsjohnmartin.github.io/MagPhyx/` +
+  //         `?initparams=1,0,0,${d.pr},${d.ptheta},${d.pphi}`)
+  //   .attr("target", "_magphyx")
+  //   .append("circle")
     .attr("cx", function(d) { return xoffset + eScale(d.energy); })
     .attr("cy", function(d) { return pphiScale(d.pphi); })
-    // .attr("fill", d => d.phase == 0 ? color(d.numBounces) : 'none')
-    .attr("fill", d => color(d.numBounces))
-    .attr("fill-opacity", d => {
-      return d.phase == 0 ?
-        ((d.ptheta_rocking == d.pphi_rocking) ? 1 : 0.6) :
-        0.1})
-    .attr("stroke", d => color(d.numBounces))
-    .attr("stroke-width", d => 1)
-    .attr("r", radius)
-    .on("click", function() {
-      // console.log(this);
-      d3.select(this).attr("r", 6);
-    })
-    .on("mouseover", handleMouseOver)
-    .on("mouseout", handleMouseOut)
-    .append("title")
-    // .text(d => `bounces = ${d.numBounces} energy = ${d.energy}\n` +
-    //       `ptheta = ${d.ptheta} pphi = ${d.pphi}\n` +
-    //       `ptheta_rocking = ${d.ptheta_rocking} pphi_rocking = ${d.pphi_rocking} phase = ${d.phase} T = ${d.T}`)
-    // .text(getToolTipText)
+  //   // .attr("fill", d => d.phase == 0 ? color(d.numBounces) : 'none')
+  //   .attr("fill", d => color(d.numBounces))
+  //   .attr("fill-opacity", d => {
+  //     return d.phase == 0 ?
+  //       ((d.ptheta_rocking == d.pphi_rocking) ? 1 : 0.6) :
+  //       0.1})
+  //   .attr("stroke", d => color(d.numBounces))
+  //   .attr("stroke-width", d => 1)
+  //   .attr("r", radius)
+  //   .on("click", function() {
+  //     // console.log(this);
+  //     d3.select(this).attr("r", 6);
+  //   })
+  //   .on("mouseover", handleMouseOver)
+  //   .on("mouseout", handleMouseOut)
+  //   .append("title")
   ;
 
   // //----------------------------------------
@@ -233,21 +265,29 @@ function updateStatesVis() {
   //   .style("text-anchor", "middle");
 }
 
-function handleMouseOver(d, i) {  // Add interactivity
+function handleMouseOver(d, i, svg_id, element) {  // Add interactivity
+  let svg = d3.select('#' + svg_id);
+  // console.log(this);
+
   // d3.select(this).attr("r", 6);
   var details = document.getElementById('details');
   details.innerHTML = getDetailsHTML(d);
 
+  // let element = this;
+
   // Use D3 to select element, change color and size
-  d3.select(this).attr('r', radius*2);
+  // d3.select(this).attr('r', radius*2);
+  d3.select(element).attr('r', radius*2);
     // fill: "orange",
   //   r: radius * 2
   // });
 
-  svg = d3.select("#states_svg");
+  // svg = d3.select("#states_svg");
 
-  let cx = d3.select(this).attr('cx');
-  let cy = d3.select(this).attr('cy');
+  // let cx = d3.select(this).attr('cx');
+  // let cy = d3.select(this).attr('cy');
+  let cx = d3.select(element).attr('cx');
+  let cy = d3.select(element).attr('cy');
   // let t = getDetailsHTML(d);
   let t = getIdString(d);
 
@@ -272,7 +312,8 @@ function handleMouseOver(d, i) {  // Add interactivity
     // .style("fill", "#FFE6F0")
   ;
 
-  var ctx = document.getElementById("states_svg");
+  // var ctx = document.getElementById("states_svg");
+  let ctx = document.getElementById(svg_id);
   let textElm = document.getElementById(id);
   let SVGRect = textElm.getBBox();
 
