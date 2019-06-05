@@ -68,7 +68,7 @@ function updateSpiderWebVis() {
     .domain([minT, 50])
     .range([minx, maxx]);
   let yScale = d3.scaleLog()
-    .domain([0.1, 50])
+    .domain([0.1, 2e2])
     .range([maxy, miny]);
 
   let xScale = TScale;
