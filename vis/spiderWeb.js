@@ -16,8 +16,15 @@ function updateSpiderWebVis() {
   let allStates = allStatesAll;
   let bifurcationStates = bifurcationStatesAll;
   if (document.getElementById("unique_states").checked) {
-    allStates = allStatesUnique;
-    bifurcationStates = bifurcationStatesUnique;
+    allStates = allStates.filter(s => s.unique);
+    bifurcationStates = bifurcationStates.filter(s => s.unique);
+    // allStates = allStatesUnique;
+    // bifurcationStates = bifurcationStatesUnique;
+  }
+
+  if (document.getElementById("equal_states").checked) {
+    allStates = allStates.filter(s => s.pphi_rocking == s.ptheta_rocking);
+    bifurcationStates = bifurcationStates.filter(s => s.pphi_rocking == s.ptheta_rocking);
   }
 
   // Filter states

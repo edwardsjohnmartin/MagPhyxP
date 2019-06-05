@@ -126,8 +126,17 @@ function updateStatesVis() {
   let allStates = allStatesAll;
   let bifurcationStates = bifurcationStatesAll;
   if (document.getElementById("unique_states").checked) {
-    allStates = allStatesUnique;
-    bifurcationStates = bifurcationStatesUnique;
+    allStates = allStates.filter(s => s.unique);
+    // allStates = allStatesUnique;
+    bifurcationStates = bifurcationStates.filter(s => s.unique);
+    // bifurcationStates = bifurcationStatesUnique;
+  }
+
+  if (document.getElementById("equal_states").checked) {
+    allStates = allStates.filter(s => s.pphi_rocking == s.ptheta_rocking);
+    // allStates = allStatesUnique;
+    bifurcationStates = bifurcationStates.filter(s => s.pphi_rocking == s.ptheta_rocking);
+    // bifurcationStates = bifurcationStatesUnique;
   }
 
   // Filter states
@@ -478,6 +487,62 @@ function uniqueStatesChanged() {
   updateSpiderWebVis();
 }
 
+function equalStatesChanged() {
+  updateStatesVis();
+  updateSpiderWebVis();
+}
+
+function primeFactors(n) {
+  if (n == 0)
+    return new Set([])
+  let factors = [];
+
+  // Get the number of twos that divide n 
+  while (n % 2 == 0) {
+    factors.push(2);
+    n = n / 2;
+  }
+  
+  // n must be odd at this point 
+  // so a skip of 2 (i = i + 2) can be used 
+  for (let i = 3; i < Math.floor((Math.sqrt(n))+1); i+=2) {
+    // while i divides n, print i and divide n
+    while (n % i == 0) {
+      factors.push(i);
+      n = n / i;
+    }
+  }
+  
+  // Condition if n is a prime
+  // number greater than 2
+  if (n > 2) {
+    factors.push(n);
+  }
+  
+  return new Set(factors);
+}
+
+function intersection(setA, setB) {
+  var _intersection = new Set();
+  for (var elem of setB) {
+    if (setA.has(elem)) {
+      _intersection.add(elem);
+    }
+  }
+  return _intersection;
+}
+
+// Returns true if three numbers share a prime factor.
+function haveSharedFactor(a, b, c) {
+  let ap = primeFactors(a);
+  let bp = primeFactors(b);
+  let cp = primeFactors(c);
+
+  let inter = intersection(ap, intersection(bp, cp));
+
+  return inter.size > 0;
+}
+
 function init() {
   document.onkeydown = keyDown;
 
@@ -486,49 +551,8 @@ function init() {
   d3.json(dataset)
     .then(function(d) {
       allStatesAll = [];
-      bifurcationStatesAll = [];
-      let cur_i = -1;
-      let cur_j = -1;
-      let cur_k = -1;
-      let cur_phase = -1;
-      d.forEach(function(s) {
-        // Calculate the phase because sometimes the phase in the
-        // data is incorrect. Not sure why.
-        let calcPhase = (s.ptheta * s.pphi < 0) ? 0 : 1;
-        let state = {
-          numBounces : s.n,
-          energy : s.E,
-          pr : s.pr,
-          ptheta : s.ptheta,
-          pphi : s.pphi,
-          ptheta_rocking : s.ptheta_rocking,
-          pphi_rocking : s.pphi_rocking,
-          // phase : s.phase,
-          phase : calcPhase,
-          T : s.period,
-        };
-        allStatesAll.push(state);
-
-        if (s.ptheta_rocking != cur_i || s.pphi_rocking != cur_j || s.n != cur_k || calcPhase != cur_phase) {
-          // if (power_of_2(s.n)) {
-            bifurcationStatesAll.push(state);
-          // }
-          cur_i = s.ptheta_rocking;
-          cur_j = s.pphi_rocking;
-          cur_k = s.n;
-          cur_phase = calcPhase;
-        }
-      });
-      parseBouncesFilter();
-      parseRockingFilter();
-      updateStatesVis();
-      updateSpiderWebVis();
-    });
-
-  dataset = "states_unique.json";
-  d3.json(dataset)
-    .then(function(d) {
       allStatesUnique = [];
+      bifurcationStatesAll = [];
       bifurcationStatesUnique = [];
       let cur_i = -1;
       let cur_j = -1;
@@ -538,6 +562,8 @@ function init() {
         // Calculate the phase because sometimes the phase in the
         // data is incorrect. Not sure why.
         let calcPhase = (s.ptheta * s.pphi < 0) ? 0 : 1;
+        let unique = !haveSharedFactor(
+          s.n, s.ptheta_rocking, s.pphi_rocking);
         let state = {
           numBounces : s.n,
           energy : s.E,
@@ -549,32 +575,80 @@ function init() {
           // phase : s.phase,
           phase : calcPhase,
           T : s.period,
+          unique : unique,
         };
-        if (s.ptheta_rocking != s.ptheta_rocking) {
-          console.log(s);
+        allStatesAll.push(state);
+        if (unique) {
+          allStatesUnique.push(state);
         }
-        if (state.ptheta_rocking != state.ptheta_rocking) {
-          console.log(s);
-        }
-        
-        allStatesUnique.push(state);
 
         if (s.ptheta_rocking != cur_i || s.pphi_rocking != cur_j || s.n != cur_k || calcPhase != cur_phase) {
-          // if (power_of_2(s.n)) {
+          bifurcationStatesAll.push(state);
+          if (unique) {
             bifurcationStatesUnique.push(state);
-          // }
+          }
           cur_i = s.ptheta_rocking;
           cur_j = s.pphi_rocking;
           cur_k = s.n;
           cur_phase = calcPhase;
         }
       });
-
       parseBouncesFilter();
       parseRockingFilter();
       updateStatesVis();
       updateSpiderWebVis();
     });
+
+  // dataset = "states_unique.json";
+  // d3.json(dataset)
+  //   .then(function(d) {
+  //     allStatesUnique = [];
+  //     bifurcationStatesUnique = [];
+  //     let cur_i = -1;
+  //     let cur_j = -1;
+  //     let cur_k = -1;
+  //     let cur_phase = -1;
+  //     d.forEach(function(s) {
+  //       // Calculate the phase because sometimes the phase in the
+  //       // data is incorrect. Not sure why.
+  //       let calcPhase = (s.ptheta * s.pphi < 0) ? 0 : 1;
+  //       let state = {
+  //         numBounces : s.n,
+  //         energy : s.E,
+  //         pr : s.pr,
+  //         ptheta : s.ptheta,
+  //         pphi : s.pphi,
+  //         ptheta_rocking : s.ptheta_rocking,
+  //         pphi_rocking : s.pphi_rocking,
+  //         // phase : s.phase,
+  //         phase : calcPhase,
+  //         T : s.period,
+  //       };
+  //       if (s.ptheta_rocking != s.ptheta_rocking) {
+  //         console.log(s);
+  //       }
+  //       if (state.ptheta_rocking != state.ptheta_rocking) {
+  //         console.log(s);
+  //       }
+        
+  //       allStatesUnique.push(state);
+
+  //       if (s.ptheta_rocking != cur_i || s.pphi_rocking != cur_j || s.n != cur_k || calcPhase != cur_phase) {
+  //         // if (power_of_2(s.n)) {
+  //           bifurcationStatesUnique.push(state);
+  //         // }
+  //         cur_i = s.ptheta_rocking;
+  //         cur_j = s.pphi_rocking;
+  //         cur_k = s.n;
+  //         cur_phase = calcPhase;
+  //       }
+  //     });
+
+  //     parseBouncesFilter();
+  //     parseRockingFilter();
+  //     updateStatesVis();
+  //     updateSpiderWebVis();
+  //   });
 }
 
 function keyDown(e) {
