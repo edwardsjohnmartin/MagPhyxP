@@ -167,106 +167,37 @@ void printUsage() {
 
 //------------------------------------------------------------
 // Command-line usage:
-//    
+//    magphyxp ptheta pphi energy
 //------------------------------------------------------------
 int main(int argc, char** argv) {
-  // return 0;
-  // double energy_ = -0.1;
-  // double num_bounces_ = 4;
-  // double ptheta_ = -0.210689108629370514;
-  // double pphi_ = 0.134463771871509624;
-  // printf("%.18f %.18f\n", ptheta_, period_impl(ptheta_, pphi_, num_bounces_, energy_));
-  // return 0;
+  if (argc < 4) {
+    printf("usage: num_bounces magphyxp ptheta pphi energy\n");
+    return -1;
+  }
 
+  int i = 1;
+  int num_bounces = atof(argv[i++]);
+  double ptheta = atof(argv[i++]);
+  double pphi = atof(argv[i++]);
+  double energy = atof(argv[i++]);
 
-  // double p[] = { 3,3 };
-  // double grad[2];
-  // compute_gradient(p, grad);
-  // printf("%f %f\n", grad[0], grad[1]);
-  // return 0;
+  // double h = 0.005;
+  // double h = 1e-7;
+  // int num_events = 10;
 
-  // int i = 1;
-  // bool stop = false;
-  // while (i < argc && !stop) {
-  //   stop = true;
-  //   if (o.ProcessArg(i, argv)) {
-  //     stop = false;
-  //   }
-  // }
-  // if (!o.initialized) {
-  //   printUsage();
-  //   return 1;
-  // }
-
-  // if (o.singleSimulation == true) {
-  //   Dipole freeDipole = o.dipole;
-  //   Event event(o.outFilename, freeDipole, o.singleStep);
-  //   doSimulation(freeDipole, event);
-  // } else {
-  //   /* Dipole freeDipole = o.dipole;
-  //   calculateMin(freeDipole); */
-  //   // -----------------------------
-  //   // added if we want to just return the dist^2 function value
-  //   Dipole freeDipole = o.dipole;
-  //   Dipole endDipole = doSimulation(freeDipole);
-  //   double dist = sqrt((endDipole.get_theta() - freeDipole.get_theta())*(endDipole.get_theta() - freeDipole.get_theta()) + 
-  //                      (endDipole.get_phi() - freeDipole.get_phi())*(endDipole.get_phi() - freeDipole.get_phi()) +
-  //                      (endDipole.get_pr() - freeDipole.get_pr())*(endDipole.get_pr() - freeDipole.get_pr()) +
-  //                      (endDipole.get_ptheta() - freeDipole.get_ptheta())*(endDipole.get_ptheta() - freeDipole.get_ptheta()) +
-  //                      (endDipole.get_pphi() - freeDipole.get_pphi())*(endDipole.get_pphi() - freeDipole.get_pphi()));
-  //   FILE* file = fopen("minimums.txt", "w");
-  //   fprintf(file, "%.5f\n", dist);
-  //   fclose(file);
-  //   // -----------------------------
-  // }
-
-  // double ptheta = -0.28;
-  // double pphi = 0.17;
-  // double ptheta = -0.15;
-  // double pphi = 0.14;
-  // double ptheta = -0.2107;
-  // double pphi = 0.1345;
-  // double ptheta = -0.5223332269729719;
-  // double pphi = 0.055058756494009986;
-  // double ptheta = -0.00000115965;
-  // double pphi = 0.000001;
-  // double ptheta = -0.1444599543;
-  // double pphi = 0.091001;
-  // double ptheta = -0.0411104287;
-  // double pphi = 0.026001;
-  double ptheta = -0.3557069348;
-  double pphi = 0.2300000010;
-  double energy = -0.0021359377;
-
-  double h = 0.005;
-  // printf("%.4f %.4f %.4f %.4f %.4f\n",
-  //       period_impl(ptheta, pphi, 4, -0.1),
-  //       period_impl(ptheta+h, pphi, 4, -0.1),
-  //       period_impl(ptheta-h, pphi, 4, -0.1),
-  //       period_impl(ptheta, pphi+h, 4, -0.1),
-  //       period_impl(ptheta, pphi-h, 4, -0.1));
-
-  int num_events = 10;
-
+  double min_step_size = 1e-7;
   double sim_step_size = 1e-7;
   printf("Calculating min\n");
-  // Minimum min = calculate_min_impl(ptheta, pphi, num_events, energy, 0.00001,
+  // Minimum min = calculate_min_impl(ptheta, pphi, num_bounces, energy,
+  //                                  min_step_size,
   //                                  VARY_PTHETA_PPHI, sim_step_size);
-  Minimum min = calculate_min_impl(ptheta, pphi, num_events, energy, 0.00001,
+  Minimum min = calculate_min_impl(ptheta, pphi, num_bounces, energy,
+                                   min_step_size,
                                    VARY_PTHETA_ENERGY, sim_step_size);
-  printf("ptheta: %.18f pphi: %.18f energy: %.18f fval: %.18f rocking: (%d %d)\n", min.ptheta, min.pphi, min.energy, min.f, min.rocking_number, min.rocking_in_phase);
+  printf("ptheta: %.18f\npphi: %.18f\nenergy: %.18f\nfval: %.18f\n\
+ptheta_rocking: %d\npphi_rocking: %d\nphase: %d\n",
+         min.ptheta, min.pphi, min.energy, min.f, min.ptheta_rocking_number,
+         min.pphi_rocking_number, min.rocking_in_phase);
 
-  // printf("Calculating period given min\n");
-  // printf("error in f = %.28f\n", period_impl(min.ptheta, min.pphi, num_events, energy));
-
-
-
-  // printf("Testing energy varying minimization\n");
-  // num_events = 5;
-  // energy = -0.21;
-  // min = calculate_min_impl(0.000001, 0.000001,
-  //                          num_events, energy, 0.00001,
-  //                          VARY_PTHETA_ENERGY);
-  // printf("%f %f %.12f %f\n", min.ptheta, min.pphi, min.energy, min.f);
   return 0;
 }
