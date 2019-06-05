@@ -51,7 +51,7 @@ function getToolTipText(d) {
 }
 
 function getIdString(d) {
-  return `(${d.ptheta_rocking},${d.pphi_rocking},${d.numBounces},${d.phase==0?'+':'-'})`;
+  return `(${d.ptheta_rocking},${d.pphi_rocking},${d.numBounces},${d.phase==0?'-':'+'})`;
 }
 
 function getDetailsHTML(d) {
