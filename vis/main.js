@@ -179,6 +179,13 @@ function updateStatesVis() {
   // let maxNumBounces = d3.max(states, m => m.numBounces);
 
   svg = d3.select("#states_svg");
+
+  svg.on("mousemove", function () {
+    let p = d3.mouse(this);
+    // console.log(p);
+    console.log(eScale.invert(p[0]-xoffset));
+  });
+
   svg.selectAll('*').remove();
 
   let xoffset = 60;
@@ -545,6 +552,11 @@ function haveSharedFactor(a, b, c) {
 
 function init() {
   document.onkeydown = keyDown;
+
+  // svg = d3.select("#states_svg");
+  // svg.call(d3.zoom().on("zoom", function () {
+  //   svg.attr("transform", d3.event.transform)
+  // }));
 
   // Read the dataset file
   let dataset = "states_all.json";
