@@ -12,3 +12,7 @@
     float:left;
     margin-right: 1em;
 }
+
+tr {
+    vertical-align: top;
+}

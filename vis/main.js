@@ -43,6 +43,24 @@ function filterState(d) {
     return include;
 }
 
+function wfilterState(d) {
+    let include = true;
+    if (include && filter.wbounces != null) {
+      include = filter.wbounces[d.numBounces];
+    }
+    // Filter everything out if bounces is empty
+    if (filter.wbounces == null) {
+      include = false;
+    }
+    // if (include && filter.ptheta_rocking != null) {
+    //   include = filter.ptheta_rocking[d.ptheta_rocking];
+    // }
+    // if (include && filter.phase != null) {
+    //   include = (filter.phase == d.phase);
+    // }
+    return include;
+}
+
 function getToolTipText(d) {
   return `bounces = ${d.numBounces} energy = ${d.energy}\n` +
     `ptheta = ${d.ptheta} pphi = ${d.pphi}\n` +
@@ -65,6 +83,19 @@ function getDetailsHTML(d) {
   //   `<tr><td style="text-align:right">phase:</td><td>${d.phase}</td></tr>` +
   //   `<tr><td style="text-align:right">T:</td><td>${d.T}</td></tr>` +
   //   `</table>`;
+
+  if (d == null) {
+    return `<table>` +
+      `<tr><td>bounces:</td><td></td></tr>` +
+      `<tr><td>energy:</td><td></td></tr>` +
+      `<tr><td>ptheta:</td><td></td></tr>` +
+      `<tr><td>pphi:</td><td></td></tr>` +
+      `<tr><td>p&theta; rocking:</td><td></td></tr>` +
+      `<tr><td>p&phi; rocking:</td><td></td></tr>` +
+      `<tr><td>phase:</td><td></td></tr>` +
+      `<tr><td>T:</td><td></td></tr>` +
+      `</table>`;
+  }
 
   return `<table>` +
     `<tr><td>bounces:</td><td>${d.numBounces}</td></tr>` +
@@ -145,7 +176,7 @@ function updateStatesVis() {
 
   // Filter states
   states = allStates.filter(filterState);
-  bStates = bifurcationStates.filter(filterState);
+  bStates = bifurcationStates.filter(wfilterState);
 
   // if (states.length == 0) return;
 
@@ -375,7 +406,8 @@ function handleMouseOut(d, i) {
     d.numBounces + "-" + d.phase + "-" + i;
 
   var details = document.getElementById('details');
-  details.innerHTML = '';
+  details.innerHTML = getDetailsHTML(null);
+  // details.innerHTML = '';
 
   // Use D3 to select element, change color back to normal
   d3.select(this).attr('r', radius);
@@ -472,6 +504,23 @@ function parseBouncesFilter() {
   }
 }
 
+function parseWBouncesFilter() {
+  let numbers;
+  try {
+    let s = document.getElementById('wbounces_filter').value;
+    numbers = parseNumbers(s);
+  } catch(e) {
+    console.log(e);
+    return;
+  }
+
+  if (numbers.length > 0) {
+    filter.wbounces = numbers;
+  } else {
+    filter.wbounces = null;
+  }
+}
+
 function parseRockingFilter() {
   let numbers;
   try {
@@ -504,6 +553,11 @@ function parsePhaseFilter() {
 function bouncesFilterChanged() {
   parseBouncesFilter();
   updateStatesVis();
+}
+
+function wbouncesFilterChanged() {
+  parseWBouncesFilter();
+  updateSpiderWebVis();
 }
 
 function rockingFilterChanged() {
@@ -586,6 +640,9 @@ function init() {
   //   svg.attr("transform", d3.event.transform)
   // }));
 
+  var details = document.getElementById('details');
+  details.innerHTML = getDetailsHTML(null);
+
   // Read the dataset file
   let dataset = "states_all.json";
   d3.json(dataset)
@@ -617,6 +674,9 @@ function init() {
           T : s.period,
           unique : unique,
         };
+        // if (s.n == 999) {
+        //   console.log(s);
+        // }
         allStatesAll.push(state);
         if (unique) {
           allStatesUnique.push(state);
@@ -634,6 +694,7 @@ function init() {
         }
       });
       parseBouncesFilter();
+      parseWBouncesFilter();
       parseRockingFilter();
       updateStatesVis();
       updateSpiderWebVis();

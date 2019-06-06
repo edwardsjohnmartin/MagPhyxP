@@ -45,8 +45,9 @@ function updateSpiderWebVis() {
   //   }
   //   return include;
   // });
-  states = bifurcationStates;
-  lineStates = bifurcationStatesAll.filter(s => s.phase == 0 &&
+  // states = bifurcationStates;
+  states = bifurcationStates.filter(wfilterState);
+  lineStates = bifurcationStatesAll.filter(wfilterState).filter(s => s.phase == 0 &&
                              s.ptheta_rocking == s.pphi_rocking);
 
   // states.forEach(s => { console.log(s); });
@@ -125,11 +126,6 @@ function updateSpiderWebVis() {
     .html('(E+1/3)n*n')
   ;
 
-  addCircle('spider_web_svg', states, -1/3, 1/3)
-    .attr("cx", d => xoffset + xScale(d.T))
-    .attr("cy", d => yScale((d.energy+1/3)*d.numBounces*d.numBounces))
-  ;
-
   // n lines
   let line = d3.line()
     .x(d => xoffset + xScale(d.T))
@@ -182,4 +178,10 @@ function updateSpiderWebVis() {
     .attr("stroke", '#aaaaaa')
     .attr("stroke-width", 0.5)
     .attr('d', line(states2));
+
+  addCircle('spider_web_svg', states, -1/3, 1/3)
+    .attr("cx", d => xoffset + xScale(d.T))
+    .attr("cy", d => yScale((d.energy+1/3)*d.numBounces*d.numBounces))
+  ;
+
 }
