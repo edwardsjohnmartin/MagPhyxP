@@ -123,7 +123,7 @@ function updateSpiderWebVis() {
     .html('(E+1/3)n*n')
   ;
 
-  addCircle('spider_web_svg', states)
+  addCircle('spider_web_svg', states, -1/3, 1/3)
     .attr("cx", d => xoffset + xScale(d.T))
     .attr("cy", d => yScale((d.energy+1/3)*d.numBounces*d.numBounces))
   ;

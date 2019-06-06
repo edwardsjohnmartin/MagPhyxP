@@ -87,9 +87,10 @@ function getDetailsHTML(d) {
   //   `</table>`;
 }
 
-function addCircle(svg_id, states) {
+function addCircle(svg_id, states, minE, maxE) {
   let svg = d3.select('#' + svg_id);
 
+  states = states.filter(s => s.energy >= minE && s.energy <= maxE);
   return svg.selectAll("circle")
     .data(states)
     .enter()
@@ -121,6 +122,9 @@ function addCircle(svg_id, states) {
     // .append("title")
   ;
 }
+
+let minE_ = null;
+let maxE_ = null;
 
 function updateStatesVis() {
   let allStates = allStatesAll;
@@ -156,6 +160,10 @@ function updateStatesVis() {
   // let maxpphi = d3.max(states, d=>d.pphi);
   let minE = d3.min(allStates, d=>d.energy);
   let maxE = d3.max(allStates, d=>d.energy);
+  if (minE_ != null) {
+    minE = minE_;
+    maxE = maxE_;
+  }
   let minpphi = d3.min(allStates, d=>d.pphi);
   let maxpphi = d3.max(allStates, d=>d.pphi);
 
@@ -179,14 +187,14 @@ function updateStatesVis() {
   // let maxNumBounces = d3.max(states, m => m.numBounces);
 
   svg = d3.select("#states_svg");
+  svg.selectAll('*').remove();
 
   svg.on("mousemove", function () {
     let p = d3.mouse(this);
-    // console.log(p);
-    console.log(eScale.invert(p[0]-xoffset));
+    let E = eScale.invert(p[0]-xoffset);
+    var details = document.getElementById('epos');
+    details.innerHTML = "E = " + E;
   });
-
-  svg.selectAll('*').remove();
 
   let xoffset = 60;
 
@@ -212,7 +220,26 @@ function updateStatesVis() {
     .html('p&phi;')
   ;
 
-  addCircle('states_svg', states)
+  let svgBounds = svg.node().getBoundingClientRect();
+  let svgWidth = svgBounds.width;// - svg.margin.left - svg.margin.right;
+  let svgHeight = 800;
+  // console.log(svgBounds);
+  let barHeight = 30;
+  let bary = pphiScale(minpphi)+10-barHeight/2;
+  let brush = d3.brushX()
+    // .extent([[0, bary-10], [this.svgWidth, bary+barHeight+10]])
+    .extent([[xoffset+minx, bary], [xoffset+maxx, bary+barHeight+10]])
+    .on("end", () => {
+      let x0 = d3.event.selection[0];
+      let x1 = d3.event.selection[1];
+      minE_ = eScale.invert(x0-xoffset);
+      maxE_ = eScale.invert(x1-xoffset);
+      updateStatesVis();
+    })
+  ;
+  svg.append("g").attr("class", "brush").call(brush);
+
+  addCircle('states_svg', states, minE, maxE)
   // svg.selectAll("circle")
   //   .data(states)
   //   .enter()
@@ -553,7 +580,8 @@ function haveSharedFactor(a, b, c) {
 function init() {
   document.onkeydown = keyDown;
 
-  // svg = d3.select("#states_svg");
+  // let svg = d3.select("#states_svg");
+
   // svg.call(d3.zoom().on("zoom", function () {
   //   svg.attr("transform", d3.event.transform)
   // }));
@@ -672,6 +700,11 @@ function keyDown(e) {
   let numbers;
 
   switch (e.keyCode) {
+  case "R".charCodeAt(0):
+    minE_ = null;
+    maxE_ = null;
+    updateStatesVis();
+    break;
   case "J".charCodeAt(0):
   case 37:
     // Down
