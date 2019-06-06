@@ -46,6 +46,8 @@ function updateSpiderWebVis() {
   //   return include;
   // });
   states = bifurcationStates;
+  lineStates = bifurcationStatesAll.filter(s => s.phase == 0 &&
+                             s.ptheta_rocking == s.pphi_rocking);
 
   // states.forEach(s => { console.log(s); });
 
@@ -132,14 +134,24 @@ function updateSpiderWebVis() {
   let line = d3.line()
     .x(d => xoffset + xScale(d.T))
     .y(d => yScale((d.energy+1/3)*d.numBounces*d.numBounces))
-    .defined((d,i) => i < states.length-1 &&
-             states[i].numBounces == states[i+1].numBounces)
+    .defined((d,i) => {
+      let valid = i < lineStates.length-1 &&
+        lineStates[i].numBounces == lineStates[i+1].numBounces;
+      if (valid) {
+        if (i > 0 && 
+            lineStates[i].ptheta_rocking-1 != lineStates[i-1].ptheta_rocking &&
+            lineStates[i].ptheta_rocking+1 != lineStates[i+1].ptheta_rocking) {
+          valid = false;
+        }
+      }
+      return valid;
+    })
   ;
   svg.append('path')
     .attr("fill", "none")
-    .attr("stroke", '#aaaaaa')
+    .attr("stroke", '#dddddd')
     .attr("stroke-width", 0.5)
-    .attr('d', line(states));
+    .attr('d', line(lineStates));
 
   // states.forEach(s => console.log(s.numBounces));
 
@@ -150,15 +162,10 @@ function updateSpiderWebVis() {
     let bi = b.ptheta_rocking;
     let aj = a.pphi_rocking;
     let bj = b.pphi_rocking;
-    if (ai == bi) {
-      if (aj == bj) {
-        return a.numBounces - b.numBounces;
-      } else {
-        return aj - bj;
-      }
-    } else {
-      return ai - bi;
+    if (a.numBounces == b.numBounces) {
+      return a.energy - b.energy;
     }
+    return a.numBounces - b.numBounces;
   });
   // console.log(states2);
   line = d3.line()

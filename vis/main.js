@@ -638,57 +638,6 @@ function init() {
       updateStatesVis();
       updateSpiderWebVis();
     });
-
-  // dataset = "states_unique.json";
-  // d3.json(dataset)
-  //   .then(function(d) {
-  //     allStatesUnique = [];
-  //     bifurcationStatesUnique = [];
-  //     let cur_i = -1;
-  //     let cur_j = -1;
-  //     let cur_k = -1;
-  //     let cur_phase = -1;
-  //     d.forEach(function(s) {
-  //       // Calculate the phase because sometimes the phase in the
-  //       // data is incorrect. Not sure why.
-  //       let calcPhase = (s.ptheta * s.pphi < 0) ? 0 : 1;
-  //       let state = {
-  //         numBounces : s.n,
-  //         energy : s.E,
-  //         pr : s.pr,
-  //         ptheta : s.ptheta,
-  //         pphi : s.pphi,
-  //         ptheta_rocking : s.ptheta_rocking,
-  //         pphi_rocking : s.pphi_rocking,
-  //         // phase : s.phase,
-  //         phase : calcPhase,
-  //         T : s.period,
-  //       };
-  //       if (s.ptheta_rocking != s.ptheta_rocking) {
-  //         console.log(s);
-  //       }
-  //       if (state.ptheta_rocking != state.ptheta_rocking) {
-  //         console.log(s);
-  //       }
-        
-  //       allStatesUnique.push(state);
-
-  //       if (s.ptheta_rocking != cur_i || s.pphi_rocking != cur_j || s.n != cur_k || calcPhase != cur_phase) {
-  //         // if (power_of_2(s.n)) {
-  //           bifurcationStatesUnique.push(state);
-  //         // }
-  //         cur_i = s.ptheta_rocking;
-  //         cur_j = s.pphi_rocking;
-  //         cur_k = s.n;
-  //         cur_phase = calcPhase;
-  //       }
-  //     });
-
-  //     parseBouncesFilter();
-  //     parseRockingFilter();
-  //     updateStatesVis();
-  //     updateSpiderWebVis();
-  //   });
 }
 
 function keyDown(e) {
