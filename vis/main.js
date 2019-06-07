@@ -5,6 +5,8 @@ let allStatesUnique;
 let bifurcationStatesAll;
 let bifurcationStatesUnique;
 
+let savingSvg = false;
+
 let filter = {
   bounces : null,
   ptheta_rocking : null,
@@ -127,6 +129,7 @@ function addCircle(svg_id, states, minE, maxE) {
     .enter()
     .append("a")
     .attr("xlink:href", d =>
+          savingSvg ? null :
           `http://edwardsjohnmartin.github.io/MagPhyx/` +
           `?initparams=1,0,0,${d.pr},${d.ptheta},${d.pphi}`)
     .attr("target", "_magphyx")
@@ -178,17 +181,11 @@ function updateStatesVis() {
   states = allStates.filter(filterState);
   bStates = bifurcationStates.filter(wfilterState);
 
-  // if (states.length == 0) return;
-
   let minx = 20;
   let maxx = 680;
   let miny = 20;
   let maxy = 580;
 
-  // let minE = d3.min(states, d=>d.energy);
-  // let maxE = d3.max(states, d=>d.energy);
-  // let minpphi = d3.min(states, d=>d.pphi);
-  // let maxpphi = d3.max(states, d=>d.pphi);
   let minE = d3.min(allStates, d=>d.energy);
   let maxE = d3.max(allStates, d=>d.energy);
   if (minE_ != null) {
@@ -197,11 +194,6 @@ function updateStatesVis() {
   }
   let minpphi = d3.min(allStates, d=>d.pphi);
   let maxpphi = d3.max(allStates, d=>d.pphi);
-
-  // let tempScale = d3.scaleLinear()
-  //   .domain([minE, maxE])
-  //   .range([minx, maxx]);  
-  // let x_axis = d3.axisBottom().scale(tempScale);
 
   let eScale = d3.scaleLinear()
     .domain([minE, maxE])
@@ -212,10 +204,6 @@ function updateStatesVis() {
 
   let x_axis = d3.axisBottom().scale(eScale);
   let y_axis = d3.axisLeft().scale(pphiScale);
-
-  // console.log("minE, maxE = " + minE + " " + maxE);
-
-  // let maxNumBounces = d3.max(states, m => m.numBounces);
 
   svg = d3.select("#states_svg");
   svg.selectAll('*').remove();
@@ -254,11 +242,10 @@ function updateStatesVis() {
   let svgBounds = svg.node().getBoundingClientRect();
   let svgWidth = svgBounds.width;// - svg.margin.left - svg.margin.right;
   let svgHeight = 800;
-  // console.log(svgBounds);
+
   let barHeight = 30;
   let bary = pphiScale(minpphi)+10-barHeight/2;
   let brush = d3.brushX()
-    // .extent([[0, bary-10], [this.svgWidth, bary+barHeight+10]])
     .extent([[xoffset+minx, bary], [xoffset+maxx, bary+barHeight+10]])
     .on("end", () => {
       let x0 = d3.event.selection[0];
@@ -271,103 +258,26 @@ function updateStatesVis() {
   svg.append("g").attr("class", "brush").call(brush);
 
   addCircle('states_svg', states, minE, maxE)
-  // svg.selectAll("circle")
-  //   .data(states)
-  //   .enter()
-  //   .append("a")
-  //   .attr("xlink:href", d =>
-  //         `http://edwardsjohnmartin.github.io/MagPhyx/` +
-  //         `?initparams=1,0,0,${d.pr},${d.ptheta},${d.pphi}`)
-  //   .attr("target", "_magphyx")
-  //   .append("circle")
     .attr("cx", function(d) { return xoffset + eScale(d.energy); })
     .attr("cy", function(d) { return pphiScale(d.pphi); })
-  //   // .attr("fill", d => d.phase == 0 ? color(d.numBounces) : 'none')
-  //   .attr("fill", d => color(d.numBounces))
-  //   .attr("fill-opacity", d => {
-  //     return d.phase == 0 ?
-  //       ((d.ptheta_rocking == d.pphi_rocking) ? 1 : 0.6) :
-  //       0.1})
-  //   .attr("stroke", d => color(d.numBounces))
-  //   .attr("stroke-width", d => 1)
-  //   .attr("r", radius)
-  //   .on("click", function() {
-  //     // console.log(this);
-  //     d3.select(this).attr("r", 6);
-  //   })
-  //   .on("mouseover", handleMouseOver)
-  //   .on("mouseout", handleMouseOut)
-  //   .append("title")
   ;
-
-  // //----------------------------------------
-  // // legend
-  // //----------------------------------------
-  // let legendVals = [];
-  // states.forEach(d => legendVals.push(d.numBounces));
-  // legendVals = Array.from(new Set(legendVals)).reverse();
-
-  // d3.select('.legend').selectAll('*').remove();
-  // let legend = d3.select('.legend')
-  //   .selectAll("legend")
-  //   .data(legendVals);
-  // p = legend.enter()
-  //   .append("div")
-  //   .attr("class","legend-div")
-  //   .append("p")
-  //   .attr("class","legend-text");
-  // p.append("span")
-  //   .attr("class","key-dot")
-  //   // .style("background", (d,i) => googleColors[i] );
-  //   // .style("background", (d,i) => googleColors[d] );
-  //   .style("background", (d,i) => color(d) );
-  // p.insert("text").text(d => d);
-
-  // //----------------------------------------
-  // // rocking numbers
-  // //----------------------------------------
-  // svg.selectAll('.rocking-label')
-  //   .data(bStates)
-  //   .enter()
-  //   .append('text')
-  //   // .text(d => (d.phase == 0) ? '-'+d.rocking.toString() : '+'+d.rocking.toString())
-  //   .text(d => d.ptheta_rocking.toString() + ',' + d.pphi_rocking.toString() + ',' + ((d.phase == 0) ? '-':'+'))
-  //   .attr('font-size', '12px')
-  //   .attr("x", function(d) { return xoffset + eScale(d.energy); })
-  //   .attr("y", function(d) { return pphiScale(d.pphi)+15; })
-  //   .attr('class', 'rocking-label')
-  //   .style("text-anchor", "middle");
 }
 
 function handleMouseOver(d, i, svg_id, element) {  // Add interactivity
   let svg = d3.select('#' + svg_id);
-  // console.log(this);
 
-  // d3.select(this).attr("r", 6);
   var details = document.getElementById('details');
   details.innerHTML = getDetailsHTML(d);
 
-  // let element = this;
-
   // Use D3 to select element, change color and size
-  // d3.select(this).attr('r', radius*2);
   d3.select(element).attr('r', radius*2);
-    // fill: "orange",
-  //   r: radius * 2
-  // });
 
-  // svg = d3.select("#states_svg");
-
-  // let cx = d3.select(this).attr('cx');
-  // let cy = d3.select(this).attr('cy');
   let cx = d3.select(element).attr('cx');
   let cy = d3.select(element).attr('cy');
-  // let t = getDetailsHTML(d);
   let t = getIdString(d);
 
   // Create an id for text so we can select it later for
   // removing on mouseout
-  // let id = "t" + d.x + "-" + d.y + "-" + i;
   let id = 'id-' + d.ptheta_rocking + "-" + d.pphi_rocking + "-" +
     d.numBounces + "-" + d.phase + "-" + i;
 
@@ -375,18 +285,11 @@ function handleMouseOver(d, i, svg_id, element) {  // Add interactivity
   svg.append("text")
     .attr('id', id)
     .attr('class', id)
-    // .attr('x', function() { return xScale(d.x) - 30; })
-    // .attr('y', function() { return yScale(d.y) - 15; })
     .attr('x', function() { return cx - 30; })
     .attr('y', function() { return cy - 15; })
     .text(t)
-    // .text(function() {
-    //   return [d.x, d.y];  // Value of the text
-    // });
-    // .style("fill", "#FFE6F0")
   ;
 
-  // var ctx = document.getElementById("states_svg");
   let ctx = document.getElementById(svg_id);
   let textElm = document.getElementById(id);
   let SVGRect = textElm.getBBox();
@@ -407,18 +310,11 @@ function handleMouseOut(d, i) {
 
   var details = document.getElementById('details');
   details.innerHTML = getDetailsHTML(null);
-  // details.innerHTML = '';
 
   // Use D3 to select element, change color back to normal
   d3.select(this).attr('r', radius);
-  // d3.select(this).attr({
-  //   // fill: "black",
-  //   r: radius
-  // });
 
   // Select text by id and then remove
-  // d3.select("#t" + d.x + "-" + d.y + "-" + i).remove();
-  // d3.selectAll(".t" + d.x + "-" + d.y + "-" + i).remove();
   d3.selectAll("." + id).remove();
 }
 
@@ -701,6 +597,56 @@ function init() {
     });
 }
 
+function saveStatesSvg() {
+  try {
+    var isFileSaverSupported = !!new Blob();
+  } catch (e) {
+    alert("blob not supported");
+  }
+
+  // Remove xlink attributes
+  savingSvg = true;
+  updateStatesVis();
+
+  var html = d3.select("#states_svg")
+    .attr("title", "test2")
+    .attr("version", 1.1)
+    .attr("xmlns", "http://www.w3.org/2000/svg")
+    .node().outerHTML;
+
+  var blob = new Blob([html], {type: "image/svg+xml"});
+  saveAs(blob, "states.svg");
+
+  // Put xlink attributes back
+  savingSvg = false;
+  updateStatesVis();
+}
+
+function saveSpiderSvg() {
+  try {
+    var isFileSaverSupported = !!new Blob();
+  } catch (e) {
+    alert("blob not supported");
+  }
+
+  // Remove xlink attributes
+  savingSvg = true;
+  updateSpiderWebVis();
+
+  var html = d3.select("#spider_web_svg")
+    .attr("title", "test2")
+    .attr("version", 1.1)
+    .attr("xmlns", "http://www.w3.org/2000/svg")
+    .node().outerHTML;
+
+  var blob = new Blob([html], {type: "image/svg+xml"});
+  saveAs(blob, "spider.svg");
+
+  // Put xlink attributes back
+  savingSvg = false;
+  updateSpiderWebVis();
+}
+
 function keyDown(e) {
   // if (e.target != document.body) {
   //   if (e.target.type != "button") {
@@ -714,6 +660,12 @@ function keyDown(e) {
     minE_ = null;
     maxE_ = null;
     updateStatesVis();
+    break;
+  case "S".charCodeAt(0):
+    saveStatesSvg();
+    break;
+  case "W".charCodeAt(0):
+    saveSpiderSvg();
     break;
   case "J".charCodeAt(0):
   case 37:

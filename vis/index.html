@@ -5,6 +5,8 @@
         <title>MagPhyx States</title>
         <!--script src="https://d3js.org/d3.v5.min.js"></script-->
         <script src="d3.js"></script>
+        <script src="FileSaver.min.js"></script>
+
         <link rel="stylesheet"  href="style.css">
 	<!--style type="text/css"></style-->
         <!--style>
@@ -31,10 +33,10 @@
             </td>
 
             <td>
-              <u>State plot</u>
+              <u><a id="state_plot_label">State plot</a></u>
               <br>
               Num bounces filter:
-              <input type="text" id="bounces_filter" oninput="bouncesFilterChanged()" size="30" value="1-3, 6, 9-10"/>
+              <input type="text" id="bounces_filter" oninput="bouncesFilterChanged()" size="30" value="1-3,5,7,11,17,23,31,61,997"/>
               <br>
               Rocking number filter:
               <input type="text" id="rocking_filter" oninput="rockingFilterChanged()" size="12" value=""/>
@@ -67,7 +69,7 @@
               <u>Spiderweb plot</u>
               <br>
               Num bounces filter:
-              <input type="text" id="wbounces_filter" oninput="wbouncesFilterChanged()" size="30" value="1,2,3,5,7,11,17,23,31,61,999"/>
+              <input type="text" id="wbounces_filter" oninput="wbouncesFilterChanged()" size="30" value="1-3,5,7,11,17,23,31,61,997"/>
               <!--br>
               Rocking number filter:
               <input type="text" id="rocking_filter" oninput="rockingFilterChanged()" size="12" value=""/>
@@ -108,9 +110,15 @@
       <svg width="800" height="700" id="states_svg"></svg>
       <svg width="800" height="700" id="spider_web_svg"></svg>
 
-      <script src="main.js?1"></script>
-      <script src="spiderWeb.js?1"></script>
-      <div id="epos">E position</div>
+      <script src="main.js?3"></script>
+      <script src="spiderWeb.js?3"></script>
+      <div id="epos">
+        E position
+      </div>
+      <br>
+      Press 's' to save an svg of the state plot
+      <br>
+      Press 'w' to save an svg of the spider web plot
       <br>
     </body>
 </html>

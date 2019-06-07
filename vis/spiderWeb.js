@@ -78,7 +78,7 @@ function updateSpiderWebVis() {
     .domain([minT, 50])
     .range([minx, maxx]);
   let yScale = d3.scaleLog()
-    .domain([0.1, 2e2])
+    .domain([0.1, 4e2])
     .range([maxy, miny]);
 
   let xScale = TScale;
@@ -123,7 +123,11 @@ function updateSpiderWebVis() {
   svg.append("g")
     .attr('transform', `translate(20, ${(maxy-miny)/2}) rotate(${-90})`)
     .append('text')
-    .html('(E+1/3)n*n')
+    .html('(E+1/3)n')
+    .append('tspan')
+    .attr('baseline-shift', 'super')
+    .style("font", "12px times")
+    .html('2')
   ;
 
   // n lines
