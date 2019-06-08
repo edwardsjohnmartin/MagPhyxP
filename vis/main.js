@@ -71,7 +71,8 @@ function getToolTipText(d) {
 }
 
 function getIdString(d) {
-  return `(${d.ptheta_rocking},${d.pphi_rocking},${d.numBounces},${d.phase==0?'-':'+'})`;
+  // return `(${d.ptheta_rocking},${d.pphi_rocking},${d.numBounces},${d.phase==0?'-':'+'})`;
+  return `(${d.numBounces},${d.ptheta_rocking},${d.pphi_rocking},${d.phase==0?'-':'+'})`;
 }
 
 function getDetailsHTML(d) {
@@ -278,8 +279,9 @@ function handleMouseOver(d, i, svg_id, element) {  // Add interactivity
 
   // Create an id for text so we can select it later for
   // removing on mouseout
-  let id = 'id-' + d.ptheta_rocking + "-" + d.pphi_rocking + "-" +
-    d.numBounces + "-" + d.phase + "-" + i;
+  let id = 'id-' + d.numBounces + "-" + 
+    d.ptheta_rocking + "-" + d.pphi_rocking + "-" +
+    d.phase + "-" + i;
 
   // Specify where to put label of text
   svg.append("text")
@@ -305,8 +307,8 @@ function handleMouseOver(d, i, svg_id, element) {  // Add interactivity
 }
 
 function handleMouseOut(d, i) {
-  let id = 'id-' + d.ptheta_rocking + "-" + d.pphi_rocking + "-" +
-    d.numBounces + "-" + d.phase + "-" + i;
+  let id = 'id-' + d.numBounces + "-" + d.ptheta_rocking + "-" + d.pphi_rocking + "-" +
+    d.phase + "-" + i;
 
   var details = document.getElementById('details');
   details.innerHTML = getDetailsHTML(null);

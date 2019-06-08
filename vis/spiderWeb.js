@@ -1,5 +1,16 @@
+// T / T2
+let T2 = 2*Math.PI/Math.sqrt((13+Math.sqrt(139))/6);
+
+function getT(T) {
+  return T/T2;
+}
+
 function getSpiderType() {
   return document.getElementById("spider_type").value;
+}
+
+function xValue(d, xoffset, xScale) {
+  return xoffset + xScale(getT(d.T));
 }
 
 function yValue(d, yScale) {
@@ -76,8 +87,12 @@ function updateSpiderWebVis() {
   }
 
   states = bifurcationStates.filter(wfilterState);
-  lineStates = bifurcationStatesAll.filter(wfilterState).filter(s => s.phase == 0 &&
-                             s.ptheta_rocking == s.pphi_rocking);
+  lineStates = bifurcationStatesAll.filter(wfilterState).
+    filter(s => s.phase == 0 &&
+           s.ptheta_rocking == s.pphi_rocking && s.phase == 0);
+  line2States = bifurcationStatesAll.filter(wfilterState).
+    filter(s => s.phase == 0 &&
+           s.ptheta_rocking == s.pphi_rocking && s.phase == 0);
 
   let minx = 20;
   let maxx = 680;
@@ -95,7 +110,8 @@ function updateSpiderWebVis() {
   let yScale = getYScale(miny, maxy);
 
   let xScale = d3.scaleLinear()
-    .domain([minT, 50])
+    // .domain([minT, 50])
+    .domain([getT(minT), getT(50)])
     .range([minx, maxx]);
 
   let sizeScale = d3.scaleLinear()
@@ -113,12 +129,12 @@ function updateSpiderWebVis() {
   // x axis
   svg.append("g")
     .attr('transform', `translate(${xoffset}, ${maxy+20})`)
-    .call(x_axis)
+    .call(x_axis.tickValues([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]))
   ;
   svg.append("g")
     .attr('transform', `translate(${xoffset + (minx+maxx)/2}, ${maxy+60})`)
     .append('text')
-    .html('T')
+    .html('T/T2')
   ;
 
   // y axis
@@ -131,61 +147,66 @@ function updateSpiderWebVis() {
   setYLabel(yl);
 
   // n lines
-  let line = d3.line()
-    .x(d => xoffset + xScale(d.T))
-    .y(d => yValue(d, yScale))
-    .defined((d,i) => {
-      let valid = i < lineStates.length-1 &&
-        lineStates[i].numBounces == lineStates[i+1].numBounces;
-      if (valid) {
-        if (i > 0 && 
-            lineStates[i].ptheta_rocking-1 != lineStates[i-1].ptheta_rocking &&
-            lineStates[i].ptheta_rocking+1 != lineStates[i+1].ptheta_rocking) {
-          valid = false;
-        }
-      }
-      return valid;
-    })
-  ;
-  svg.append('path')
-    .attr("fill", "none")
-    .attr("stroke", '#dddddd')
-    .attr("stroke-width", 0.5)
-    .attr('d', line(lineStates));
-
-  // states.forEach(s => console.log(s.numBounces));
-
-  // rocking number lines
-  let states2 = states.slice();
-  states2.sort((a,b) => {
-    let ai = a.ptheta_rocking;
-    let bi = b.ptheta_rocking;
-    let aj = a.pphi_rocking;
-    let bj = b.pphi_rocking;
+  lineStates.sort((a,b) => {
     if (a.numBounces == b.numBounces) {
       return a.energy - b.energy;
     }
     return a.numBounces - b.numBounces;
   });
-  line = d3.line()
-    .x(d => xoffset + xScale(d.T))
-    .y(d => yValue(d, yScale))
-    .defined((d,i) => i < states2.length-1 &&
-             states2[i].ptheta_rocking == states2[i+1].ptheta_rocking &&
-             states2[i].pphi_rocking == states2[i+1].pphi_rocking &&
-             states2[i].phase == states2[i+1].phase)// &&
-             // states2[i+1].T < 50)
-  ;
-  svg.append('path')
-    .attr("fill", "none")
-    .attr("stroke", '#aaaaaa')
-    .attr("stroke-width", 0.5)
-    .attr('d', line(states2));
+  for (let i = 0; i < lineStates.length; ) {
+    let start = i;
+    let m = lineStates[i].numBounces;
+    while (i < lineStates.length && lineStates[i].numBounces == m) {
+      i++;
+    }
+    let s = lineStates.slice(start, i);
+
+    let line = d3.line()
+      .x(d => xValue(d, xoffset, xScale))
+      .y(d => yValue(d, yScale))
+    ;
+    let c = color(s[0].numBounces);
+    svg.append('path')
+      .attr("fill", "none")
+      // .attr("stroke", '#dddddd')
+      .attr("stroke", c)
+      .attr("stroke-width", 0.5)
+      .style("stroke-dasharray", ("3, 3"))
+      .attr('d', line(s));
+  }
+
+  // rocking number lines
+  line2States.sort((a,b) => {
+    if (a.ptheta_rocking == b.ptheta_rocking) {
+      return a.numBounces - b.numBounces;
+    }
+    return a.ptheta_rocking - b.ptheta_rocking;
+  });
+
+  for (let i = 0; i < line2States.length;) {
+    let start = i;
+    let r = line2States[i].ptheta_rocking;
+    while (i < line2States.length && line2States[i].ptheta_rocking == r) {
+      i++;
+    }
+    let s = line2States.slice(start, i);
+
+    line = d3.line()
+      .x(d => xValue(d, xoffset, xScale))
+      .y(d => yValue(d, yScale))
+    ;
+    svg.append('path')
+      .attr("fill", "none")
+      .attr("stroke", '#aaaaaa')
+      .attr("stroke-width", 0.5)
+      // .style("stroke-dasharray", ("3, 3"))
+      .attr('d', line(s));
+  }
 
   addCircle('spider_web_svg', states, -1/3, 1/3)
-    .attr("cx", d => xoffset + xScale(d.T))
+    .attr("cx", d => xValue(d, xoffset, xScale))
     .attr("cy", d => yValue(d, yScale))
-    .attr("r", d => sizeScale(d.energy))
+    // .attr("r", d => sizeScale(d.energy))
   ;
 
 }
