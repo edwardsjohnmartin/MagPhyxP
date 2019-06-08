@@ -137,7 +137,8 @@ function updateSpiderWebVis() {
   // n lines
   let line = d3.line()
     .x(d => xoffset + xScale(d.T))
-    .y(d => yScale((d.energy+1/3)*d.numBounces*d.numBounces))
+    // .y(d => yScale((d.energy+1/3)*d.numBounces*d.numBounces))
+    .y(d => yScale(Math.sqrt(8)*Math.sqrt(d.energy+1/3)*d.numBounces/d.T))
     .defined((d,i) => {
       let valid = i < lineStates.length-1 &&
         lineStates[i].numBounces == lineStates[i+1].numBounces;
@@ -174,7 +175,8 @@ function updateSpiderWebVis() {
   // console.log(states2);
   line = d3.line()
     .x(d => xoffset + xScale(d.T))
-    .y(d => yScale((d.energy+1/3)*d.numBounces*d.numBounces))
+    // .y(d => yScale((d.energy+1/3)*d.numBounces*d.numBounces))
+    .y(d => yScale(Math.sqrt(8)*Math.sqrt(d.energy+1/3)*d.numBounces/d.T))
     .defined((d,i) => i < states2.length-1 &&
              states2[i].ptheta_rocking == states2[i+1].ptheta_rocking &&
              states2[i].pphi_rocking == states2[i+1].pphi_rocking &&
