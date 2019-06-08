@@ -87,12 +87,13 @@ function updateSpiderWebVis() {
   }
 
   states = bifurcationStates.filter(wfilterState);
-  lineStates = bifurcationStatesAll.filter(wfilterState).
-    filter(s => s.phase == 0 &&
-           s.ptheta_rocking == s.pphi_rocking && s.phase == 0);
+  // lineStates = bifurcationStatesAll.filter(wfilterState).
+  //   filter(s => //s.phase == 0 &&
+  //          s.ptheta_rocking == s.pphi_rocking);
+  lineStates = bifurcationStatesAll.filter(wfilterState);
   line2States = bifurcationStatesAll.filter(wfilterState).
-    filter(s => s.phase == 0 &&
-           s.ptheta_rocking == s.pphi_rocking && s.phase == 0);
+    filter(s => //s.phase == 0 &&
+           s.ptheta_rocking == s.pphi_rocking);
 
   let minx = 20;
   let maxx = 680;
@@ -146,7 +147,9 @@ function updateSpiderWebVis() {
     .attr('transform', `translate(20, ${(maxy-miny)/2}) rotate(${-90})`);
   setYLabel(yl);
 
-  // n lines
+  //---------------------
+  // num bounces lines
+  //---------------------
   lineStates.sort((a,b) => {
     if (a.numBounces == b.numBounces) {
       return a.energy - b.energy;
@@ -166,21 +169,27 @@ function updateSpiderWebVis() {
       .y(d => yValue(d, yScale))
     ;
     let c = color(s[0].numBounces);
+    c = d3.hsl(c).brighter(1);
     svg.append('path')
       .attr("fill", "none")
       // .attr("stroke", '#dddddd')
       .attr("stroke", c)
       .attr("stroke-width", 0.5)
-      .style("stroke-dasharray", ("3, 3"))
+      // .style("stroke-dasharray", ("3, 8"))
       .attr('d', line(s));
   }
 
+  //---------------------
   // rocking number lines
+  //---------------------
   line2States.sort((a,b) => {
-    if (a.ptheta_rocking == b.ptheta_rocking) {
-      return a.numBounces - b.numBounces;
+    if (a.phase == b.phase) {
+      if (a.ptheta_rocking == b.ptheta_rocking) {
+        return a.numBounces - b.numBounces;
+      }
+      return a.ptheta_rocking - b.ptheta_rocking;
     }
-    return a.ptheta_rocking - b.ptheta_rocking;
+    return a.phase - b.phase;
   });
 
   for (let i = 0; i < line2States.length;) {
@@ -195,14 +204,21 @@ function updateSpiderWebVis() {
       .x(d => xValue(d, xoffset, xScale))
       .y(d => yValue(d, yScale))
     ;
-    svg.append('path')
+    let path = svg.append('path')
       .attr("fill", "none")
-      .attr("stroke", '#aaaaaa')
-      .attr("stroke-width", 0.5)
+      // .attr("stroke", '#aaaaaa')
+      .attr("stroke", '#888888')
+      .attr("stroke-width", 1.5)
       // .style("stroke-dasharray", ("3, 3"))
       .attr('d', line(s));
+    if (s[0].phase == 1) {
+      path.style("stroke-dasharray", ("3, 7"))
+    }
   }
 
+  //---------------------
+  // circles
+  //---------------------
   addCircle('spider_web_svg', states, -1/3, 1/3)
     .attr("cx", d => xValue(d, xoffset, xScale))
     .attr("cy", d => yValue(d, yScale))

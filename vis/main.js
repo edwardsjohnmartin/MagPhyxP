@@ -15,7 +15,12 @@ let filter = {
 
 let radius = 3;
 
+let cmap = {}; 
+
 function color(i) {
+  if (i in cmap) {
+    i = cmap[i];
+  }
   const n = googleColors.length;
   return googleColors[i%n];
 }
@@ -353,7 +358,7 @@ function parseNumbersRaw(s) {
 
 // Returns an array of booleans. If the number i is included in s and the
 // return value is numbers, then numbers[i] == true.
-function parseNumbers(s) {
+function parseNumbers(s, numberArray = false) {
   // Parse the filter string
   let numbers = [];
   let tokens = s.split(',');
@@ -374,6 +379,10 @@ function parseNumbers(s) {
       }
     }
   });
+
+  if (numberArray) {
+    return numbers;
+  }
 
   if (numbers.length == 0) {
     return new Array(0);
@@ -532,11 +541,11 @@ function haveSharedFactor(a, b, c) {
 function init() {
   document.onkeydown = keyDown;
 
-  // let svg = d3.select("#states_svg");
-
-  // svg.call(d3.zoom().on("zoom", function () {
-  //   svg.attr("transform", d3.event.transform)
-  // }));
+  let modes = parseNumbers(
+    document.getElementById('wbounces_filter').value, true);
+  for (let i = 0; i < modes.length; i++) {
+    cmap[modes[i]] = i;
+  }
 
   var details = document.getElementById('details');
   details.innerHTML = getDetailsHTML(null);
