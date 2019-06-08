@@ -1,16 +1,64 @@
-// let googleColors = ["#3366cc", "#dc3912", "#ff9900", "#109618", "#990099", "#0099c6", "#dd4477", "#66aa00", "#b82e2e", "#316395", "#994499", "#22aa99", "#aaaa11", "#6633cc", "#e67300", "#8b0707", "#651067", "#329262", "#5574a6", "#3b3eac"];
+function getSpiderType() {
+  return document.getElementById("spider_type").value;
+}
 
-// let allStates;
-// let filter = {
-//   bounces : null,
-//   rocking : null,
-//   phase : null
-// };
+function yValue(d, yScale) {
+  let t = getSpiderType();
+  if (t == 0)
+    return yScale((d.energy+1/3)*d.numBounces*d.numBounces);
+  if (t == 1)
+    return yScale(d.energy);
+  if (t == 2)
+    return yScale(Math.sqrt(8)*Math.sqrt(d.energy+1/3)*d.numBounces/d.T);
+}
 
-// function color(i) {
-//   const n = googleColors.length;
-//   return googleColors[i%n];
-// }
+function getYScale(miny, maxy) {
+  let t = getSpiderType();
+  if (t == 0)
+    return d3.scaleLog()
+    .domain([0.1, 4e2])
+    .range([maxy, miny]);
+  if (t == 1)
+    return d3.scaleLinear()
+    .domain([-1/3, 0])
+    .range([maxy, miny]);
+  if (t == 2)
+    return d3.scaleLinear()
+    .domain([0.0, 1.0])
+    .range([maxy, miny]);
+}
+
+function setYLabel(yl) {
+  let t = getSpiderType();
+  if (t == 0) {
+    yl.append('text')
+      .html('(E+1/3)n')
+      .append('tspan')
+      .attr('baseline-shift', 'super')
+      .style("font", "12px times")
+      .html('2')
+    ;
+  } else if (t == 1) {
+    yl.append('text')
+      .html('E')
+    ;
+  } else if (t == 2) {
+    yl.append('text')
+      .html('(8(E+1/3)')
+      .append('tspan')
+      .attr('baseline-shift', 'super')
+      .style("font", "12px times")
+      .html('1/2')
+      .append('tspan')
+      .style("font", "16px times")
+      .html('m/T')
+    ;
+  }
+}
+
+function spiderTypeChanged() {
+  updateSpiderWebVis();
+}
 
 function updateSpiderWebVis() {
   let allStates = allStatesAll;
@@ -27,30 +75,9 @@ function updateSpiderWebVis() {
     bifurcationStates = bifurcationStates.filter(s => s.pphi_rocking == s.ptheta_rocking);
   }
 
-  // Filter states
-  // states = allStates.filter(d => {
-  //   let include = true;
-  //   if (include && filter.bounces != null) {
-  //     include = filter.bounces[d.numBounces];
-  //   }
-  //   // Filter everything out if bounces is empty
-  //   if (filter.bounces == null) {
-  //     include = false;
-  //   }
-  //   if (include && filter.rocking != null) {
-  //     include = filter.rocking[d.rocking];
-  //   }
-  //   if (include && filter.phase != null) {
-  //     include = (filter.phase == d.phase);
-  //   }
-  //   return include;
-  // });
-  // states = bifurcationStates;
   states = bifurcationStates.filter(wfilterState);
   lineStates = bifurcationStatesAll.filter(wfilterState).filter(s => s.phase == 0 &&
                              s.ptheta_rocking == s.pphi_rocking);
-
-  // states.forEach(s => { console.log(s); });
 
   let minx = 20;
   let maxx = 680;
@@ -65,43 +92,18 @@ function updateSpiderWebVis() {
   let maxT = d3.max(bifurcationStates, d=>d.T);
 
 
-  let eScale = d3.scaleLinear()
-    .domain([minE, maxE])
-    // .range([minx, maxx]);
-    // .range([miny, maxy]);
-    .range([maxy, miny]);
-  let pphiScale = d3.scaleLinear()
-    .domain([minpphi, maxpphi])
-    .range([maxy, miny]);
-  let TScale = d3.scaleLinear()
-    // .domain([minT, maxT])
+  let yScale = getYScale(miny, maxy);
+
+  let xScale = d3.scaleLinear()
     .domain([minT, 50])
     .range([minx, maxx]);
 
-  let yScale = d3.scaleLinear()
-    .domain([0.0, 1.0])
-    .range([maxy, miny]);
-  // let yScale = d3.scaleLog()
-  //   .domain([0.1, 4e2])
-  //   .range([maxy, miny]);
+  let sizeScale = d3.scaleLinear()
+    .domain([-1/3, 0])
+    .range([2, 5]);
 
-  let xScale = TScale;
-  // let yScale = eScale;
-
-  // console.log(yScale(minE));
-  // console.log(yScale(maxE));
-
-  // console.log(yScale(100));
-
-
-  // let x_axis = d3.axisBottom().scale(eScale);
   let x_axis = d3.axisBottom().scale(xScale);
-  // let y_axis = d3.axisLeft().scale(pphiScale);
   let y_axis = d3.axisLeft().scale(yScale);
-
-  // console.log("minE, maxE = " + minE + " " + maxE);
-
-  // let maxNumBounces = d3.max(states, m => m.numBounces);
 
   svg = d3.select("#spider_web_svg");
   svg.selectAll('*').remove();
@@ -124,21 +126,14 @@ function updateSpiderWebVis() {
     .attr('transform', `translate(${xoffset}, ${miny-20})`)
     .call(y_axis)
   ;
-  svg.append("g")
-    .attr('transform', `translate(20, ${(maxy-miny)/2}) rotate(${-90})`)
-    .append('text')
-    .html('(E+1/3)n')
-    .append('tspan')
-    .attr('baseline-shift', 'super')
-    .style("font", "12px times")
-    .html('2')
-  ;
+  let yl = svg.append("g")
+    .attr('transform', `translate(20, ${(maxy-miny)/2}) rotate(${-90})`);
+  setYLabel(yl);
 
   // n lines
   let line = d3.line()
     .x(d => xoffset + xScale(d.T))
-    // .y(d => yScale((d.energy+1/3)*d.numBounces*d.numBounces))
-    .y(d => yScale(Math.sqrt(8)*Math.sqrt(d.energy+1/3)*d.numBounces/d.T))
+    .y(d => yValue(d, yScale))
     .defined((d,i) => {
       let valid = i < lineStates.length-1 &&
         lineStates[i].numBounces == lineStates[i+1].numBounces;
@@ -172,11 +167,9 @@ function updateSpiderWebVis() {
     }
     return a.numBounces - b.numBounces;
   });
-  // console.log(states2);
   line = d3.line()
     .x(d => xoffset + xScale(d.T))
-    // .y(d => yScale((d.energy+1/3)*d.numBounces*d.numBounces))
-    .y(d => yScale(Math.sqrt(8)*Math.sqrt(d.energy+1/3)*d.numBounces/d.T))
+    .y(d => yValue(d, yScale))
     .defined((d,i) => i < states2.length-1 &&
              states2[i].ptheta_rocking == states2[i+1].ptheta_rocking &&
              states2[i].pphi_rocking == states2[i+1].pphi_rocking &&
@@ -191,8 +184,8 @@ function updateSpiderWebVis() {
 
   addCircle('spider_web_svg', states, -1/3, 1/3)
     .attr("cx", d => xoffset + xScale(d.T))
-    // .attr("cy", d => yScale((d.energy+1/3)*d.numBounces*d.numBounces))
-    .attr("cy", d => yScale(Math.sqrt(8)*Math.sqrt(d.energy+1/3)*d.numBounces/d.T))
+    .attr("cy", d => yValue(d, yScale))
+    .attr("r", d => sizeScale(d.energy))
   ;
 
 }
