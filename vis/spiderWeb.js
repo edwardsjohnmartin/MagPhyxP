@@ -77,9 +77,13 @@ function updateSpiderWebVis() {
     // .domain([minT, maxT])
     .domain([minT, 50])
     .range([minx, maxx]);
-  let yScale = d3.scaleLog()
-    .domain([0.1, 4e2])
+
+  let yScale = d3.scaleLinear()
+    .domain([0.0, 1.0])
     .range([maxy, miny]);
+  // let yScale = d3.scaleLog()
+  //   .domain([0.1, 4e2])
+  //   .range([maxy, miny]);
 
   let xScale = TScale;
   // let yScale = eScale;
@@ -185,7 +189,8 @@ function updateSpiderWebVis() {
 
   addCircle('spider_web_svg', states, -1/3, 1/3)
     .attr("cx", d => xoffset + xScale(d.T))
-    .attr("cy", d => yScale((d.energy+1/3)*d.numBounces*d.numBounces))
+    // .attr("cy", d => yScale((d.energy+1/3)*d.numBounces*d.numBounces))
+    .attr("cy", d => yScale(Math.sqrt(8)*Math.sqrt(d.energy+1/3)*d.numBounces/d.T))
   ;
 
 }
