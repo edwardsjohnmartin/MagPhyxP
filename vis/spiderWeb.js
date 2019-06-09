@@ -167,6 +167,7 @@ function updateSpiderWebVis() {
     let line = d3.line()
       .x(d => xValue(d, xoffset, xScale))
       .y(d => yValue(d, yScale))
+      .curve(d3.curveCatmullRom.alpha(0.5))
     ;
     let c = color(s[0].numBounces);
     c = d3.hsl(c).brighter(1);
@@ -203,7 +204,9 @@ function updateSpiderWebVis() {
     line = d3.line()
       .x(d => xValue(d, xoffset, xScale))
       .y(d => yValue(d, yScale))
+      .curve(d3.curveCatmullRom.alpha(0.5))
     ;
+
     let path = svg.append('path')
       .attr("fill", "none")
       // .attr("stroke", '#aaaaaa')
