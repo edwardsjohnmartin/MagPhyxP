@@ -181,7 +181,7 @@ function updateSpiderWebVis() {
       .attr("fill", "none")
       // .attr("stroke", '#dddddd')
       .attr("stroke", c)
-      .attr("stroke-width", 0.5)
+      .attr("stroke-width", 1.2)
       // .style("stroke-dasharray", ("3, 8"))
       .attr('d', line(s));
   }
@@ -210,18 +210,19 @@ function updateSpiderWebVis() {
     line = d3.line()
       .x(d => xValue(d, xoffset, xScale))
       .y(d => yValue(d, yScale))
-      .curve(d3.curveCatmullRom.alpha(0.5))
+      .curve(d3.curveCatmullRom.alpha(1.1))
     ;
 
     let path = svg.append('path')
       .attr("fill", "none")
       // .attr("stroke", '#aaaaaa')
       .attr("stroke", '#888888')
-      .attr("stroke-width", 1.5)
+      .attr("stroke-width", 0.5)
       // .style("stroke-dasharray", ("3, 3"))
       .attr('d', line(s));
     if (s[0].phase == 1) {
-      path.style("stroke-dasharray", ("3, 7"))
+      path.attr("stroke-width", 0.9);
+      path.style("stroke-dasharray", ("3, 4"))
     }
   }
 
