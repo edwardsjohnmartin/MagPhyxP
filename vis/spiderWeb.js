@@ -158,7 +158,8 @@ function updateSpiderWebVis() {
   //---------------------
   lineStates.sort((a,b) => {
     if (a.numBounces == b.numBounces) {
-      return a.energy - b.energy;
+      // return a.energy - b.energy;
+      return a.T - b.T;
     }
     return a.numBounces - b.numBounces;
   });

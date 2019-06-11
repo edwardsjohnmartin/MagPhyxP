@@ -78,7 +78,11 @@ function getToolTipText(d) {
 function getIdString(d) {
   // return `(${d.ptheta_rocking},${d.pphi_rocking},${d.numBounces},${d.phase==0?'-':'+'})`;
   // return `(${d.numBounces},${d.ptheta_rocking},${d.pphi_rocking},${d.phase==0?'-':'+'})`;
-  return `(${d.numBounces},${d.theta_crossings},${d.beta_crossings},${d.phase==0?'-':'+'})`;
+  // return `(${d.numBounces},${d.theta_crossings},${d.beta_crossings},${d.phase==0?'-':'+'})`;
+  if (d.phase == 0) {
+    return `(2,${d.numBounces},${d.theta_crossings})`;
+  }
+  return `(1,${d.numBounces},${d.pphi_rocking})`;
 }
 
 function getDetailsHTML(d) {
