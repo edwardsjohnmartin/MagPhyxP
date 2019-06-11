@@ -367,7 +367,7 @@ def find_mode_step(num_bounces, E, verbose):
 
 # # Driver
 
-# In[ ]:
+# In[8]:
 
 
 import math
@@ -384,7 +384,7 @@ print('------------------------------------------------')
 m_max = 7
 
 # TODO: put number of bounces to check
-bounces = [1, 2, 3]
+bounces = [1, 2, 3, 4, 5, 6, 7, 9, 11, 13, 15, 19, 23, 27, 31, 39, 47, 55, 63]
 
 E_range = None
 # E_range = [-0.055, -0.045]
