@@ -75,16 +75,27 @@ function getToolTipText(d) {
     `phase = ${d.phase} T = ${d.T}`
 }
 
+function getRockingNumber(d) {
+  if (d.phase == 1) {
+    // In-phase
+    return d.theta_crossings;
+  } else {
+    // Out-of-phase
+    return d.pphi_rocking;
+  }
+}
+
 function getIdString(d) {
   // return `(${d.ptheta_rocking},${d.pphi_rocking},${d.numBounces},${d.phase==0?'-':'+'})`;
   // return `(${d.numBounces},${d.ptheta_rocking},${d.pphi_rocking},${d.phase==0?'-':'+'})`;
   // return `(${d.numBounces},${d.theta_crossings},${d.beta_crossings},${d.phase==0?'-':'+'})`;
+  let r = getRockingNumber(d);
   if (d.phase == 1) {
     // In-phase
-    return `(${d.numBounces},${d.theta_crossings},1)`;
+    return `(${d.numBounces},${r},1)`;
   } else {
     // Out-of-phase
-    return `(${d.numBounces},${d.pphi_rocking},2)`;
+    return `(${d.numBounces},${r},2)`;
   }
 }
 
@@ -159,9 +170,10 @@ function addCircle(svg_id, states, minE, maxE) {
     // .attr("fill", d => d.phase == 0 ? color(d.numBounces) : 'none')
     .attr("fill", d => color(d.numBounces))
     .attr("fill-opacity", d => {
-      return d.phase == 0 ?
-        ((d.ptheta_rocking == d.pphi_rocking) ? 1 : 0.6) :
-        0.1})
+      // return d.phase == 0 ?
+      //   ((d.ptheta_rocking == d.pphi_rocking) ? 1 : 0.6) :
+      //   0.1})
+      return d.phase == 0 ? 1 : 0.1})
     .attr("stroke", d => color(d.numBounces))
     .attr("stroke-width", d => 1)
     .attr("r", radius)
@@ -484,6 +496,10 @@ function wbouncesFilterChanged() {
 function rockingFilterChanged() {
   parseRockingFilter();
   updateStatesVis();
+}
+
+function spiderLinesChanged() {
+  updateSpiderWebVis();
 }
 
 function phaseFilterChanged() {

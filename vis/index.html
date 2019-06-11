@@ -49,20 +49,20 @@
               &nbsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="phaseFilter"
                                              id="outphase" value="0"
                                              onchange="phaseFilterChanged()">
-              <label for="outphase">out of phase</label>
+              <label for="outphase">Out of phase</label>
               <br>
 
               &nbsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="phaseFilter"
                                              id="inphase" value="1"
                                              onchange="phaseFilterChanged()">
 
-              <label for="inphase">in phase</label>
+              <label for="inphase">In phase</label>
               <br>
 
               &nbsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="phaseFilter"
                                              id="allphase" value="-1" checked
                                              onchange="phaseFilterChanged()">
-              <label for="allphase">all</label>
+              <label for="allphase">All</label>
 
               <br><br>
             </td>
@@ -82,6 +82,29 @@
                 <option value="2">2</option>
                 <!--option value="3">3</option-->
               </select>
+
+              <br>
+              Lines:
+              <br>
+
+              &nbsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="spiderLines"
+                                             id="bouncesLines" value="0"
+                                             onchange="spiderLinesChanged()">
+              <label for="bouncesLines">Number of bounces</label>
+              <br>
+
+              &nbsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="spiderLines"
+                                             id="rockingLines" value="1"
+                                             onchange="spiderLinesChanged()">
+              <label for="rockingLines">Rocking number</label>
+              <br>
+
+              &nbsp;&nbsp;&nbsp;&nbsp;<input type="radio" name="spiderLines"
+                                             id="allLines" value="2" checked
+                                             onchange="spiderLinesChanged()">
+              <label for="allLines">All</label>
+              <br>
+
               <!--br>
               Rocking number filter:
               <input type="text" id="rocking_filter" oninput="rockingFilterChanged()" size="12" value=""/>

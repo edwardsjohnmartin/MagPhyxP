@@ -94,9 +94,9 @@ function updateSpiderWebVis() {
   // lineStates = bifurcationStatesAll;
   lineStates = bifurcationStates;
   lineStates = lineStates.filter(wfilterState);
-  line2States = lineStates.filter(wfilterState).
-    filter(s => //s.phase == 0 &&
-           s.ptheta_rocking == s.pphi_rocking);
+  line2States = lineStates.filter(wfilterState);
+    // filter(s => //s.phase == 0 &&
+    //        s.ptheta_rocking == s.pphi_rocking);
 
   let minx = 20;
   let maxx = 720;
@@ -155,74 +155,82 @@ function updateSpiderWebVis() {
   //---------------------
   // num bounces lines
   //---------------------
-  lineStates.sort((a,b) => {
-    if (a.numBounces == b.numBounces) {
-      // return a.energy - b.energy;
-      return a.T - b.T;
-    }
-    return a.numBounces - b.numBounces;
-  });
-  for (let i = 0; i < lineStates.length; ) {
-    let start = i;
-    let m = lineStates[i].numBounces;
-    while (i < lineStates.length && lineStates[i].numBounces == m) {
-      i++;
-    }
-    let s = lineStates.slice(start, i);
+  if (document.getElementById('bouncesLines').checked ||
+      document.getElementById('allLines').checked) {
+    lineStates.sort((a,b) => {
+      if (a.numBounces == b.numBounces) {
+        // return a.energy - b.energy;
+        return a.T - b.T;
+      }
+      return a.numBounces - b.numBounces;
+    });
+    for (let i = 0; i < lineStates.length; ) {
+      let start = i;
+      let m = lineStates[i].numBounces;
+      while (i < lineStates.length && lineStates[i].numBounces == m) {
+        i++;
+      }
+      let s = lineStates.slice(start, i);
 
-    let line = d3.line()
-      .x(d => xValue(d, xoffset, xScale))
-      .y(d => yValue(d, yScale))
-      .curve(d3.curveCatmullRom.alpha(0.5))
-    ;
-    let c = color(s[0].numBounces);
-    c = d3.hsl(c).brighter(1);
-    svg.append('path')
-      .attr("fill", "none")
+      let line = d3.line()
+        .x(d => xValue(d, xoffset, xScale))
+        .y(d => yValue(d, yScale))
+        .curve(d3.curveCatmullRom.alpha(0.5))
+      ;
+      let c = color(s[0].numBounces);
+      c = d3.hsl(c).brighter(1);
+      svg.append('path')
+        .attr("fill", "none")
       // .attr("stroke", '#dddddd')
-      .attr("stroke", c)
-      .attr("stroke-width", 1.2)
+        .attr("stroke", c)
+        .attr("stroke-width", 0.8)
       // .style("stroke-dasharray", ("3, 8"))
-      .attr('d', line(s));
+        .attr('d', line(s));
+    }
   }
 
   //---------------------
   // rocking number lines
   //---------------------
-  line2States.sort((a,b) => {
-    if (a.phase == b.phase) {
-      if (a.ptheta_rocking == b.ptheta_rocking) {
-        return a.numBounces - b.numBounces;
+  if (document.getElementById('rockingLines').checked ||
+      document.getElementById('allLines').checked) {
+    line2States.sort((a,b) => {
+      let ar = getRockingNumber(a);
+      let br = getRockingNumber(b);
+      if (a.phase == b.phase) {
+        if (ar == br) {
+          return a.numBounces - b.numBounces;
+        }
+        return ar - br;
       }
-      return a.ptheta_rocking - b.ptheta_rocking;
-    }
-    return a.phase - b.phase;
-  });
+      return a.phase - b.phase;
+    });
 
-  for (let i = 0; i < line2States.length;) {
-    let start = i;
-    let r = line2States[i].ptheta_rocking;
-    while (i < line2States.length && line2States[i].ptheta_rocking == r) {
-      i++;
-    }
-    let s = line2States.slice(start, i);
+    for (let i = 0; i < line2States.length;) {
+      let start = i;
+      let r = getRockingNumber(line2States[i]);
+      while (i < line2States.length && getRockingNumber(line2States[i]) == r) {
+        i++;
+      }
+      let s = line2States.slice(start, i);
 
-    line = d3.line()
-      .x(d => xValue(d, xoffset, xScale))
-      .y(d => yValue(d, yScale))
-      .curve(d3.curveCatmullRom.alpha(1.1))
-    ;
+      line = d3.line()
+        .x(d => xValue(d, xoffset, xScale))
+        .y(d => yValue(d, yScale))
+        .curve(d3.curveCatmullRom.alpha(1.1))
+      ;
 
-    let path = svg.append('path')
-      .attr("fill", "none")
+      let path = svg.append('path')
+        .attr("fill", "none")
       // .attr("stroke", '#aaaaaa')
-      .attr("stroke", '#888888')
-      .attr("stroke-width", 0.5)
+        .attr("stroke", '#888888')
+        .attr("stroke-width", 0.5)
       // .style("stroke-dasharray", ("3, 3"))
-      .attr('d', line(s));
-    if (s[0].phase == 1) {
-      path.attr("stroke-width", 0.9);
-      path.style("stroke-dasharray", ("3, 4"))
+        .attr('d', line(s));
+      if (s[0].phase == 1) {
+        path.attr("stroke-width", 0.9);
+        path.style("stroke-dasharray", ("3, 4"))
+      }
     }
   }
 
