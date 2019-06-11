@@ -71,6 +71,10 @@ function spiderTypeChanged() {
   updateSpiderWebVis();
 }
 
+function maxTChanged() {
+  updateSpiderWebVis();
+}
+
 function updateSpiderWebVis() {
   let allStates = allStatesAll;
   let bifurcationStates = bifurcationStatesAll;
@@ -106,7 +110,7 @@ function updateSpiderWebVis() {
   let maxpphi = d3.max(bifurcationStates, d=>d.pphi);
   let minT = d3.min(bifurcationStates, d=>d.T);
   let maxT = d3.max(bifurcationStates, d=>d.T);
-  let Tmax = 70;
+  let Tmax = +document.getElementById('maxT').value;
   // console.log(getT(Tmax));
 
   let yScale = getYScale(miny, maxy);
