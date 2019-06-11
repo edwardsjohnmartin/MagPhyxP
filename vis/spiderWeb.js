@@ -91,11 +91,10 @@ function updateSpiderWebVis() {
   }
 
   states = bifurcationStates.filter(wfilterState);
-  // lineStates = bifurcationStatesAll.filter(wfilterState).
-  //   filter(s => //s.phase == 0 &&
-  //          s.ptheta_rocking == s.pphi_rocking);
-  lineStates = bifurcationStatesAll.filter(wfilterState);
-  line2States = bifurcationStatesAll.filter(wfilterState).
+  // lineStates = bifurcationStatesAll;
+  lineStates = bifurcationStates;
+  lineStates = lineStates.filter(wfilterState);
+  line2States = lineStates.filter(wfilterState).
     filter(s => //s.phase == 0 &&
            s.ptheta_rocking == s.pphi_rocking);
 
