@@ -294,7 +294,7 @@ def trace_mode(curr_state, mode_id):
 
 T_THRESHOLD = 350000
 
-def find_mode_step(num_bounces, E):
+def find_mode_step(num_bounces, E, verbose):
     global previous_E
     global bifurcation_id
     
@@ -305,7 +305,12 @@ def find_mode_step(num_bounces, E):
     bifurcation_state = magphyxp.calculate_min(PTHETA_0, PPHI_0, num_bounces, E, minimization_step_size,
                                                VARY_PTHETA_ENERGY, simulation_step_size)
 
+    if verbose:
+        print('pre-candidate: {},{} '.format(bifurcation_state.ptheta_rocking_number,
+                                             bifurcation_state.pphi_rocking_number,
+                                            bifurcation_state.f))
     bifurcation_E = 1
+    
     pphi_max = get_pphi_max(bifurcation_state.energy, bifurcation_state.ptheta)
     if (bifurcation_state.f < 1e-9 and bifurcation_state.energy > -1/3
         and bifurcation_state.energy - previous_E > E_step
@@ -315,6 +320,10 @@ def find_mode_step(num_bounces, E):
         # Get the current state of pphi, ptheta, and energy
         curr_state = np.array((bifurcation_state.ptheta, bifurcation_state.pphi, bifurcation_state.energy))
         bifurcation_E = bifurcation_state.energy
+        
+        if verbose:
+            print('candidate: {},{} '.format(bifurcation_state.ptheta_rocking_number,
+                                             bifurcation_state.pphi_rocking_number))
 
         states = trace_mode(curr_state, bifurcation_id)
 
@@ -327,7 +336,10 @@ def find_mode_step(num_bounces, E):
 #             print(states[-1])
             ptheta_rocking_number = states[-1]['ptheta_rocking_number']
             pphi_rocking_number = states[-1]['pphi_rocking_number']
-            print('{},{} '.format(ptheta_rocking_number, pphi_rocking_number), end='', flush=True)
+            print('{:.2f}' .format(states[0]['energy']))
+#             print('{},{} '.format(ptheta_rocking_number, pphi_rocking_number), end='', flush=True)
+            if verbose:
+                print()
             for state in states:
                 f.write(
                     #'{} {} {:<.5f} {:<.5f} {:<.5f} {:<.5f} {} {} {:<.5f}\n'.format(
@@ -335,7 +347,8 @@ def find_mode_step(num_bounces, E):
                         state['mode_id'], state['num_bounces'], state['pr'],
                         state['ptheta'], state['pphi'],
                         state['energy'], state['ptheta_rocking_number'],  state['pphi_rocking_number'],
-                        state['in_phase'], state['period'])
+                        state['in_phase'], state['period'], state['theta_crossings'], state['phi_crossings'],
+                        state['beta_crossings'])
                 )
 
             f.flush()
@@ -346,7 +359,6 @@ def find_mode_step(num_bounces, E):
                 return False
             
     return True
-
 
 # # Driver
 

@@ -77,7 +77,8 @@ function getToolTipText(d) {
 
 function getIdString(d) {
   // return `(${d.ptheta_rocking},${d.pphi_rocking},${d.numBounces},${d.phase==0?'-':'+'})`;
-  return `(${d.numBounces},${d.ptheta_rocking},${d.pphi_rocking},${d.phase==0?'-':'+'})`;
+  // return `(${d.numBounces},${d.ptheta_rocking},${d.pphi_rocking},${d.phase==0?'-':'+'})`;
+  return `(${d.numBounces},${d.theta_crossings},${d.beta_crossings},${d.phase==0?'-':'+'})`;
 }
 
 function getDetailsHTML(d) {
@@ -101,6 +102,9 @@ function getDetailsHTML(d) {
       `<tr><td>p&theta; rocking:</td><td></td></tr>` +
       `<tr><td>p&phi; rocking:</td><td></td></tr>` +
       `<tr><td>phase:</td><td></td></tr>` +
+      `<tr><td>&theta; crossings:</td><td></td></tr>` +
+      `<tr><td>&phi; crossings:</td><td></td></tr>` +
+      `<tr><td>&beta; crossings:</td><td></td></tr>` +
       `<tr><td>T:</td><td></td></tr>` +
       `</table>`;
   }
@@ -113,6 +117,9 @@ function getDetailsHTML(d) {
     `<tr><td>p&theta; rocking:</td><td>${d.ptheta_rocking}</td></tr>` +
     `<tr><td>p&phi; rocking:</td><td>${d.pphi_rocking}</td></tr>` +
     `<tr><td>phase:</td><td>${d.phase}</td></tr>` +
+    `<tr><td>&theta; crossings:</td><td>${d.theta_crossings}</td></tr>` +
+    `<tr><td>&phi; crossings:</td><td>${d.phi_crossings}</td></tr>` +
+    `<tr><td>&beta; crossings:</td><td>${d.beta_crossings}</td></tr>` +
     `<tr><td>T:</td><td>${d.T}</td></tr>` +
     `</table>`;
   // return `<table>
@@ -578,6 +585,9 @@ function init() {
           pphi_rocking : s.pphi_rocking,
           // phase : s.phase,
           phase : calcPhase,
+          theta_crossings : s.theta_crossings,
+          phi_crossings : s.phi_crossings,
+          beta_crossings : s.beta_crossings,
           T : s.period,
           unique : unique,
         };

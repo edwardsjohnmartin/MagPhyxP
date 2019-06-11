@@ -10,6 +10,9 @@ struct Minimum {
   int ptheta_rocking_number;
   int pphi_rocking_number;
   int rocking_in_phase;
+  int theta_crossings;
+  int phi_crossings;
+  int beta_crossings;
 };
 
 #endif

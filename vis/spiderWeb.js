@@ -96,7 +96,7 @@ function updateSpiderWebVis() {
            s.ptheta_rocking == s.pphi_rocking);
 
   let minx = 20;
-  let maxx = 680;
+  let maxx = 720;
   let miny = 20;
   let maxy = 580;
 
@@ -106,13 +106,14 @@ function updateSpiderWebVis() {
   let maxpphi = d3.max(bifurcationStates, d=>d.pphi);
   let minT = d3.min(bifurcationStates, d=>d.T);
   let maxT = d3.max(bifurcationStates, d=>d.T);
-
+  let Tmax = 70;
+  // console.log(getT(Tmax));
 
   let yScale = getYScale(miny, maxy);
 
   let xScale = d3.scaleLinear()
     // .domain([minT, 50])
-    .domain([getT(minT), getT(50)])
+    .domain([getT(minT), Math.ceil(getT(Tmax))])
     .range([minx, maxx]);
 
   let sizeScale = d3.scaleLinear()
@@ -128,9 +129,10 @@ function updateSpiderWebVis() {
   let xoffset = 60;
 
   // x axis
+  let tickValues = [...Array(Math.ceil(getT(Tmax))+1).keys()].slice(1);
   svg.append("g")
     .attr('transform', `translate(${xoffset}, ${maxy+20})`)
-    .call(x_axis.tickValues([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]))
+    .call(x_axis.tickValues(tickValues))
   ;
   svg.append("g")
     .attr('transform', `translate(${xoffset + (minx+maxx)/2}, ${maxy+60})`)

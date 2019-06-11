@@ -29,7 +29,10 @@ const double default_eps = 1e-10;
 // Global Options object. Declared in Options.h.
 Options o(default_n, default_h, default_eps, default_dynamics);
 Dipole doSimulation(const Dipole& freeDipole, Event& event);
-Dipole doSimulation(const Dipole& freeDipole, double* t, int* ptheta_rocking_number, int* pphi_rocking_number);
+Dipole doSimulation(
+    const Dipole& freeDipole, double* t, int* ptheta_rocking_number,
+    int* pphi_rocking_number, int* theta_crossings,
+    int* phi_crossings, int* beta_crossings);
 
 double calculate_pr2(
     double r, double theta, double phi, double ptheta, double pphi,
@@ -92,7 +95,7 @@ double period_impl(double ptheta, double pphi, int num_events, double energy) {
   Dipole freeDipole = create_dipole(ptheta, pphi, energy);
   // printf("a %f %f %f\n", ptheta, pphi, energy);
   
-  Dipole endDipole = doSimulation(freeDipole, 0, 0, 0);
+  Dipole endDipole = doSimulation(freeDipole, 0, 0, 0, 0, 0, 0);
   // printf("b\n");
   // double dist = sqrt((endDipole.get_theta() - freeDipole.get_theta())*
   //                    (endDipole.get_theta() - freeDipole.get_theta()) + 
@@ -228,11 +231,18 @@ Dipole doSimulation(const Dipole& freeDipole, Event& event) {
   return freeDipole;
 }
 
-Dipole doSimulation(const Dipole& freeDipole, double* t_out, int* ptheta_rocking_number, int* pphi_rocking_number) {
+Dipole doSimulation(
+    const Dipole& freeDipole, double* t_out, int* ptheta_rocking_number,
+    int* pphi_rocking_number, int* theta_crossings,
+    int* phi_crossings, int* beta_crossings) {
   Event event("", freeDipole, o.singleStep);
   const double h_ = o.h;
   const int numEvents = o.numEvents;
   const int numSteps = o.numSteps;
+
+  const double theta0 = freeDipole.get_theta();
+  const double phi0 = freeDipole.get_phi();
+  const double beta0 = Physics::get_beta(freeDipole);
 
   // printf("h_ = %f\n", h_);
   Stepper stepper(freeDipole, h_, o.fixed_h, o.eps);
@@ -246,6 +256,9 @@ Dipole doSimulation(const Dipole& freeDipole, double* t_out, int* ptheta_rocking
 
   int ptheta_crossings = 0;
   int pphi_crossings = 0;
+  int ttheta_crossings = 0;
+  int tphi_crossings = 0;
+  int tbeta_crossings = 0;
   while (n < o.numEvents) {
     try {
       // double currR = stepper.d.get_r();
@@ -290,7 +303,27 @@ Dipole doSimulation(const Dipole& freeDipole, double* t_out, int* ptheta_rocking
       if (fired && eventType & EVENT_TYPE_PPHI) {
         pphi_crossings++;
       }
+
+      if (fired && eventType & EVENT_TYPE_THETA) {
+        ttheta_crossings++;
+      }
+      if (fired && eventType & EVENT_TYPE_PHI) {
+        tphi_crossings++;
+      }
+      if (fired && eventType & EVENT_TYPE_BETA) {
+        tbeta_crossings++;
+      }
     }
+  }
+
+  if (ttheta_crossings % 2 == 1 && theta0 == 0) {
+    ttheta_crossings++;
+  }
+  if (tphi_crossings % 2 == 1 && phi0 == 0) {
+    tphi_crossings++;
+  }
+  if (tbeta_crossings % 2 == 1 && beta0 == 0) {
+    tbeta_crossings++;
   }
 
   // printf("m: %d\n", m);
@@ -300,9 +333,10 @@ Dipole doSimulation(const Dipole& freeDipole, double* t_out, int* ptheta_rocking
   }
   if (ptheta_rocking_number) {
     *ptheta_rocking_number = ptheta_crossings;
-  }
-  if (pphi_rocking_number) {
     *pphi_rocking_number = pphi_crossings;
+    *theta_crossings = ttheta_crossings;
+    *phi_crossings = tphi_crossings;
+    *beta_crossings = tbeta_crossings;
   }
 
   return toReturn;
@@ -317,6 +351,9 @@ struct Params {
   double t;
   int ptheta_rocking_number;
   int pphi_rocking_number;
+  int theta_crossings;
+  int phi_crossings;
+  int beta_crossings;
 };
 
 static int it = 0;
@@ -349,10 +386,16 @@ double my_f (const gsl_vector* v, void* params) {
   double t_val = 0;
   int ptheta_rocking_number = 0;
   int pphi_rocking_number = 0;
-  Dipole endDipole = doSimulation(toUse, &t_val, &ptheta_rocking_number, &pphi_rocking_number);
+  int theta_crossings = 0;
+  int phi_crossings = 0;
+  int beta_crossings = 0;
+  Dipole endDipole = doSimulation(toUse, &t_val, &ptheta_rocking_number, &pphi_rocking_number, &theta_crossings, &phi_crossings, &beta_crossings);
   ((Params*)params)->t = t_val;
   ((Params*)params)->ptheta_rocking_number = ptheta_rocking_number;
   ((Params*)params)->pphi_rocking_number = pphi_rocking_number;
+  ((Params*)params)->theta_crossings = theta_crossings;
+  ((Params*)params)->phi_crossings = phi_crossings;
+  ((Params*)params)->beta_crossings = beta_crossings;
 
   const double fval = calculate_error(toUse, endDipole);
   return fval;
@@ -389,10 +432,18 @@ double my_f_energy(const gsl_vector* v, void* params) {
   double t_val;
   int ptheta_rocking_number = 0;
   int pphi_rocking_number = 0;
-  Dipole endDipole = doSimulation(toUse, &t_val, &ptheta_rocking_number, &pphi_rocking_number);
+  int theta_crossings = 0;
+  int phi_crossings = 0;
+  int beta_crossings = 0;
+  Dipole endDipole = doSimulation(
+      toUse, &t_val, &ptheta_rocking_number, &pphi_rocking_number,
+      &theta_crossings, &phi_crossings, &beta_crossings);
   ((Params*)params)->t = t_val;
   ((Params*)params)->ptheta_rocking_number = ptheta_rocking_number;
   ((Params*)params)->pphi_rocking_number = pphi_rocking_number;
+  ((Params*)params)->theta_crossings = theta_crossings;
+  ((Params*)params)->phi_crossings = phi_crossings;
+  ((Params*)params)->beta_crossings = beta_crossings;
   const double fval = calculate_error(toUse, endDipole);
   return fval;
 }
@@ -491,6 +542,9 @@ Minimum calculate_min_impl(double ptheta, double pphi,
 
   const int ptheta_rocking_number = params.ptheta_rocking_number;
   const int pphi_rocking_number = params.pphi_rocking_number;
+  const int theta_crossings = params.theta_crossings;
+  const int phi_crossings = params.phi_crossings;
+  const int beta_crossings = params.beta_crossings;
 
   Minimum ret;
   if (vary == VARY_PTHETA_PPHI) {
@@ -506,7 +560,10 @@ Minimum calculate_min_impl(double ptheta, double pphi,
             params.t,
             int(ptheta_rocking_number/2),
             int(pphi_rocking_number/2),
-            rocking_in_phase
+            rocking_in_phase,
+            theta_crossings,
+            phi_crossings,
+            beta_crossings
     };
   } else if (vary == VARY_PTHETA_ENERGY) {
     ptheta = gsl_vector_get(s->x, 0);
@@ -521,7 +578,10 @@ Minimum calculate_min_impl(double ptheta, double pphi,
             params.t,
             int(ptheta_rocking_number/2),
             int(pphi_rocking_number/2),
-            rocking_in_phase
+            rocking_in_phase,
+            int(theta_crossings/2),
+            int(phi_crossings/2),
+            int(beta_crossings/2)
     };
   }
   // printf("pr = %lf\n", pr);
