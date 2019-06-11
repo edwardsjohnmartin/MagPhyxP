@@ -384,7 +384,7 @@ print('------------------------------------------------')
 m_max = 7
 
 # TODO: put number of bounces to check
-bounces = [79, 95, 111, 127]
+bounces = [157]
 
 E_range = None
 # E_range = [-0.055, -0.045]

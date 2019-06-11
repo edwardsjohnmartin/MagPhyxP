@@ -199,6 +199,9 @@ function updateSpiderWebVis() {
       let br = getRockingNumber(b);
       if (a.phase == b.phase) {
         if (ar == br) {
+          if (a.numBounces == b.numBounces) {
+            return b.T - a.T;
+          }
           return a.numBounces - b.numBounces;
         }
         return ar - br;
