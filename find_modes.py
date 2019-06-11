@@ -100,7 +100,10 @@ def trace_mode(curr_state, mode_id):
             'ptheta_rocking_number' : min_two.ptheta_rocking_number,
             'pphi_rocking_number' : min_two.pphi_rocking_number,
             'in_phase' : min_two.rocking_in_phase,
-            'period' : min_two.t
+            'period' : min_two.t,
+            'theta_crossings' : min_two.theta_crossings,
+            'phi_crossings' : min_two.phi_crossings,
+            'beta_crossings' : min_two.beta_crossings,
         }
         states.append(state)
         # Slowly increase the step size of the vector
@@ -111,7 +114,7 @@ def trace_mode(curr_state, mode_id):
     return states
 
 
-# In[141]:
+# In[4]:
 
 
 # import math
@@ -292,6 +295,7 @@ def trace_mode(curr_state, mode_id):
 # In[4]:
 
 
+
 T_THRESHOLD = 350000
 
 def find_mode_step(num_bounces, E, verbose):
@@ -336,14 +340,14 @@ def find_mode_step(num_bounces, E, verbose):
 #             print(states[-1])
             ptheta_rocking_number = states[-1]['ptheta_rocking_number']
             pphi_rocking_number = states[-1]['pphi_rocking_number']
-            print('{:.2f}' .format(states[0]['energy']))
+            print('{:.3f} ' .format(states[0]['energy']), end='', flush=True)
 #             print('{},{} '.format(ptheta_rocking_number, pphi_rocking_number), end='', flush=True)
             if verbose:
                 print()
             for state in states:
                 f.write(
                     #'{} {} {:<.5f} {:<.5f} {:<.5f} {:<.5f} {} {} {:<.5f}\n'.format(
-                    '{} {} {:<.5e} {:<.5e} {:<.5e} {:<.5e} {} {} {} {:<.5f}\n'.format(
+                    '{} {} {:<.5e} {:<.5e} {:<.5e} {:<.5e} {} {} {} {:<.5f} {} {} {}\n'.format(
                         state['mode_id'], state['num_bounces'], state['pr'],
                         state['ptheta'], state['pphi'],
                         state['energy'], state['ptheta_rocking_number'],  state['pphi_rocking_number'],
@@ -360,36 +364,41 @@ def find_mode_step(num_bounces, E, verbose):
             
     return True
 
+
 # # Driver
 
-# In[13]:
+# In[ ]:
 
+
+import math
 
 # fn = '/home/bojohnson/Desktop/traces.txt'
 # if len(sys.argv) > 1:
 #     fn = sys.argv[1]
-fdir = './vis/'
+fdir = './vis/states/'
 bifurcation_id = 0
 
 print('n  | m')
 print('------------------------------------------------')
 
 m_max = 7
-# bounces = range(1, 12) # Problem: n=5 doesn't find m=6 in bsearch
-bounces = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 15, 16, 17, 23, 31, 61, 63, 64, 127, 128]
-# bounces = [9]
-# bounces = range(12, 13)
-# bounces = [2**i-1 for i in range(1, 6)]
+
+# TODO: put number of bounces to check
+bounces = [1, 2, 3]
 
 E_range = None
-# E_range = [-0.16, -0.15]
+# E_range = [-0.055, -0.045]
+
+num_steps = 1000
 
 for num_bounces in bounces:
     print('{:<3d}| '.format(num_bounces), end='', flush=True)
     
     fn = fdir + 'states{:03d}.txt'.format(num_bounces)
     if E_range != None:
-        fn = fdir + 'states{:03d}_custom.txt'.format(num_bounces)
+        lo = math.ceil(-E_range[0]*1000)
+        hi = math.floor(-E_range[1]*1000)
+        fn = fdir + 'states{:03d}_{}_{}.txt'.format(num_bounces, lo, hi)
         
     f = open(fn,'w') # File to write data to
     
@@ -417,10 +426,12 @@ for num_bounces in bounces:
     E_stop = 0
     E_step = 1e-3
     
+    verbose = False
     if E_range != None:
         E_start = E_range[0]
         E_stop = E_range[1]
-        E_step = (E_stop - E_start) / 500
+        E_step = (E_stop - E_start) / num_steps
+        verbose = True
     
     E = E_start
 
@@ -428,10 +439,13 @@ for num_bounces in bounces:
 
     keep_going = True
     while (keep_going and E <= E_stop):
-        keep_going = find_mode_step(num_bounces, E);
+#         if verbose:
+#             print(E)
+        keep_going = find_mode_step(num_bounces, E, verbose);
 #         E_step = E_step * 1.01
         E = E + E_step
-    print()
+    print('wrote {}'.format(fn))
+#     print()
 
     f.close()
 print('done')
