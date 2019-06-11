@@ -572,9 +572,12 @@ function init() {
       allStatesUnique = [];
       bifurcationStatesAll = [];
       bifurcationStatesUnique = [];
-      let cur_i = -1;
-      let cur_j = -1;
-      let cur_k = -1;
+      let cur_ptc = -1;
+      let cur_ppc = -1;
+      let cur_tc = -1;
+      let cur_pc = -1;
+      let cur_bc = -1;
+      let cur_n = -1;
       let cur_phase = -1;
       d.forEach(function(s) {
         // Calculate the phase because sometimes the phase in the
@@ -583,6 +586,7 @@ function init() {
         let unique = !haveSharedFactor(
           s.n, s.ptheta_rocking, s.pphi_rocking);
         let state = {
+          bifurcation : s.bifurcation,
           numBounces : s.n,
           energy : s.E,
           pr : s.pr,
@@ -606,16 +610,42 @@ function init() {
           allStatesUnique.push(state);
         }
 
-        if (s.ptheta_rocking != cur_i || s.pphi_rocking != cur_j || s.n != cur_k || calcPhase != cur_phase) {
+        // if (s.ptheta_rocking != cur_ptc || s.pphi_rocking != cur_ppc || s.n != cur_n || calcPhase != cur_phase) {
+        // if (s.ptheta_rocking != cur_ptc &&
+        //     s.pphi_rocking != cur_ppc &&
+        //     s.n != cur_n &&
+        //     calcPhase != cur_phase) {
+        // if (s.ptheta_rocking != cur_ptc ||
+        //     s.pphi_rocking != cur_ppc ||
+        //     // s.theta_crossings != cur_tc ||
+        //     // s.phi_crossings != cur_pc ||
+        //     // s.beta_crossings != cur_bc ||
+        //     s.n != cur_n ||
+        //     calcPhase != cur_phase) {
+        // let bstate = calcPhase != cur_phase || s.n != cur_n;
+        // if (!bstate) {
+        //   if (calcPhase == 1) {
+        //     bstate = s.theta_crossings != cur_tc;
+        //   } else {
+        //     bstate = s.pphi_rocking != cur_ppc;
+        //   }
+        // }
+        // if (s.ptheta_rocking != cur_ptc ||
+        //     s.pphi_rocking != cur_ppc ||
+        //     s.n != cur_n ||
+        //     calcPhase != cur_phase) {
+        // if (bstate) {
+        if (s.bifurcation) {
           bifurcationStatesAll.push(state);
-          if (unique) {
-            bifurcationStatesUnique.push(state);
-          }
-          cur_i = s.ptheta_rocking;
-          cur_j = s.pphi_rocking;
-          cur_k = s.n;
-          cur_phase = calcPhase;
         }
+          cur_ptc = s.ptheta_rocking;
+          cur_ppc = s.pphi_rocking;
+          cur_tc = s.theta_crossing;
+          cur_pc = s.phi_crossing;
+          cur_bc = s.beta_crossing;
+          cur_n = s.n;
+          cur_phase = calcPhase;
+        // }
       });
       parseBouncesFilter();
       parseWBouncesFilter();
