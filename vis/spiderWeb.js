@@ -99,7 +99,7 @@ function updateSpiderWebVis() {
     //        s.ptheta_rocking == s.pphi_rocking);
 
   let minx = 20;
-  let maxx = 720;
+  let maxx = 740;
   let miny = 20;
   let maxy = 580;
 
@@ -125,6 +125,7 @@ function updateSpiderWebVis() {
 
   let x_axis = d3.axisBottom().scale(xScale);
   let y_axis = d3.axisLeft().scale(yScale);
+  let y2_axis = d3.axisRight().scale(yScale);
 
   svg = d3.select("#spider_web_svg");
   svg.selectAll('*').remove();
@@ -152,6 +153,15 @@ function updateSpiderWebVis() {
     .attr('transform', `translate(20, ${(maxy-miny)/2}) rotate(${-90})`);
   setYLabel(yl);
 
+  // // y2 axis
+  // svg.append("g")
+  //   .attr('transform', `translate(${xoffset+700}, ${miny-20})`)
+  //   .call(y2_axis)
+  // ;
+  // let y2l = svg.append("g")
+  //   .attr('transform', `translate(20, ${(maxy-miny)/2}) rotate(${-90})`);
+  // setYLabel(y2l);
+
   //---------------------
   // num bounces lines
   //---------------------
@@ -159,7 +169,6 @@ function updateSpiderWebVis() {
       document.getElementById('allLines').checked) {
     lineStates.sort((a,b) => {
       if (a.numBounces == b.numBounces) {
-        // return a.energy - b.energy;
         return a.T - b.T;
       }
       return a.numBounces - b.numBounces;
@@ -181,10 +190,8 @@ function updateSpiderWebVis() {
       c = d3.hsl(c).brighter(1);
       svg.append('path')
         .attr("fill", "none")
-      // .attr("stroke", '#dddddd')
         .attr("stroke", c)
-        .attr("stroke-width", 0.8)
-      // .style("stroke-dasharray", ("3, 8"))
+        .attr("stroke-width", 0.4)
         .attr('d', line(s));
     }
   }
@@ -225,13 +232,11 @@ function updateSpiderWebVis() {
 
       let path = svg.append('path')
         .attr("fill", "none")
-      // .attr("stroke", '#aaaaaa')
         .attr("stroke", '#888888')
-        .attr("stroke-width", 0.5)
-      // .style("stroke-dasharray", ("3, 3"))
+        .attr("stroke-width", 0.4)
         .attr('d', line(s));
       if (s[0].phase == 1) {
-        path.attr("stroke-width", 0.9);
+        path.attr("stroke-width", 0.4);
         path.style("stroke-dasharray", ("3, 4"))
       }
     }
@@ -241,9 +246,13 @@ function updateSpiderWebVis() {
   // circles
   //---------------------
   addCircle('spider_web_svg', states, -1/3, 1/3)
-    .attr("cx", d => xValue(d, xoffset, xScale))
-    .attr("cy", d => yValue(d, yScale))
+    // .attr("cx", d => xValue(d, xoffset, xScale))
+    // .attr("cy", d => yValue(d, yScale))
     // .attr("r", d => sizeScale(d.energy))
+    .attr('transform', function(d) {
+      return 'translate(' + xValue(d, xoffset, xScale) + ', ' +
+        yValue(d, yScale) + ')';
+    })
   ;
 
 }

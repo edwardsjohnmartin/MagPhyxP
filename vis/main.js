@@ -25,6 +25,11 @@ function color(i) {
   return googleColors[i%n];
 }
 
+function getColor(d) {
+  return color(d.numBounces);
+  // return color(getRockingNumber(d));
+}
+
 function power_of_2(n) {
  if (typeof n !== 'number') 
       return 'Not a number'; 
@@ -100,17 +105,6 @@ function getIdString(d) {
 }
 
 function getDetailsHTML(d) {
-  // return `<table>` +
-  //   `<tr><td style="text-align:right">bounces:</td><td>${d.numBounces}</td></tr>` +
-  //   `<tr><td style="text-align:right">energy:</td><td>${d.energy}</td></tr>` +
-  //   `<tr><td style="text-align:right">ptheta:</td><td>${d.ptheta}</td></tr>` +
-  //   `<tr><td style="text-align:right">pphi:</td><td>${d.pphi}</td></tr>` +
-  //   `<tr><td style="text-align:right">ptheta_rocking:</td><td>${d.ptheta_rocking}</td></tr>` +
-  //   `<tr><td style="text-align:right">pphi_rocking:</td><td>${d.pphi_rocking}</td></tr>` +
-  //   `<tr><td style="text-align:right">phase:</td><td>${d.phase}</td></tr>` +
-  //   `<tr><td style="text-align:right">T:</td><td>${d.T}</td></tr>` +
-  //   `</table>`;
-
   if (d == null) {
     return `<table>` +
       `<tr><td>bounces:</td><td></td></tr>` +
@@ -140,22 +134,35 @@ function getDetailsHTML(d) {
     `<tr><td>&beta; crossings:</td><td>${d.beta_crossings}</td></tr>` +
     `<tr><td>T:</td><td>${d.T}</td></tr>` +
     `</table>`;
-  // return `<table>
-  //   <tr><td>bounces:</td><td>${d.numBounces}</td></tr>` +
-  //   `energy = ${d.energy}<br>` +
-  //   `ptheta = ${d.ptheta}<br>pphi = ${d.pphi}<br>` +
-  //   `ptheta_rocking = ${d.ptheta_rocking}<br>` +
-  //   `pphi_rocking = ${d.pphi_rocking}<br>` +
-  //   `phase = ${d.phase}<br>` +
-  //   `T = ${d.T}` +
-  //   `</table>`;
+}
+
+function getRadius(d) {
+  return d.unique ? radius : 3*radius/4;
+}
+
+let symbolSize = 30;
+let symbols = [
+  d3.symbol().type(d3.symbolCircle).size(symbolSize)(),
+  d3.symbol().type(d3.symbolCross).size(symbolSize)(),
+  d3.symbol().type(d3.symbolDiamond).size(symbolSize)(),
+  d3.symbol().type(d3.symbolSquare).size(symbolSize)(),
+  d3.symbol().type(d3.symbolStar).size(symbolSize)(),
+  d3.symbol().type(d3.symbolTriangle).size(symbolSize)(),
+  d3.symbol().type(d3.symbolWye).size(symbolSize)(),
+];
+
+function getSymbol(d) {
+  // return symbols[d.numBounces % symbols.length];
+  return symbols[getRockingNumber(d) % symbols.length];
 }
 
 function addCircle(svg_id, states, minE, maxE) {
   let svg = d3.select('#' + svg_id);
 
   states = states.filter(s => s.energy >= minE && s.energy <= maxE);
-  return svg.selectAll("circle")
+
+  // return svg.selectAll("circle")
+  return svg.selectAll("#state")
     .data(states)
     .enter()
     .append("a")
@@ -164,28 +171,22 @@ function addCircle(svg_id, states, minE, maxE) {
           `http://edwardsjohnmartin.github.io/MagPhyx/` +
           `?initparams=1,0,0,${d.pr},${d.ptheta},${d.pphi}`)
     .attr("target", "_magphyx")
-    .append("circle")
-    // .attr("cx", function(d) { return xoffset + eScale(d.energy); })
-    // .attr("cy", function(d) { return pphiScale(d.pphi); })
-    // .attr("fill", d => d.phase == 0 ? color(d.numBounces) : 'none')
-    .attr("fill", d => color(d.numBounces))
+    // .append("circle")
+    .append('path')
+    // .attr('d', pathData)
+    .attr('d', d => getSymbol(d))
+    .attr("id", "state")
+    .attr("fill", d => getColor(d))
     .attr("fill-opacity", d => {
-      // return d.phase == 0 ?
-      //   ((d.ptheta_rocking == d.pphi_rocking) ? 1 : 0.6) :
-      //   0.1})
       return d.phase == 0 ? 1 : 0.1})
-    .attr("stroke", d => color(d.numBounces))
+    .attr("stroke", d => getColor(d))
     .attr("stroke-width", d => 1)
-    .attr("r", radius)
+    .attr("r", d => getRadius(d))
     .on("click", function() {
-      // console.log(this);
       d3.select(this).attr("r", 6);
     })
-    // .on("mouseover", handleMouseOver)
-    // .on("mouseout", handleMouseOut)
     .on("mouseover", function(d,i) { handleMouseOver(d,i,svg_id,this); })
     .on("mouseout", handleMouseOut)
-    // .append("title")
   ;
 }
 
@@ -290,8 +291,12 @@ function updateStatesVis() {
   svg.append("g").attr("class", "brush").call(brush);
 
   addCircle('states_svg', states, minE, maxE)
-    .attr("cx", function(d) { return xoffset + eScale(d.energy); })
-    .attr("cy", function(d) { return pphiScale(d.pphi); })
+    // .attr("cx", function(d) { return xoffset + eScale(d.energy); })
+    // .attr("cy", function(d) { return pphiScale(d.pphi); })
+    .attr('transform', function(d) {
+      return 'translate(' + (xoffset + eScale(d.energy)) + ', ' +
+        pphiScale(d.pphi) + ')';
+    })
   ;
 }
 
@@ -345,7 +350,8 @@ function handleMouseOut(d, i) {
   details.innerHTML = getDetailsHTML(null);
 
   // Use D3 to select element, change color back to normal
-  d3.select(this).attr('r', radius);
+  // d3.select(this).attr('r', radius);
+  d3.select(this).attr('r', d => getRadius(d));
 
   // Select text by id and then remove
   d3.selectAll("." + id).remove();
@@ -753,7 +759,13 @@ function keyDown(e) {
     }
     if (numbers.length == 0) numbers = [2];
     if (numbers[0] < 2) numbers = [2];
-    document.getElementById('bounces_filter').value = numbers[0]-1;
+    let dn = numbers[0]-1;
+    while (dn > 1 &&
+           allStatesAll.filter(s => s.numBounces == dn).length == 0) {
+      dn--;
+    } 
+    // document.getElementById('bounces_filter').value = numbers[0]-1;
+    document.getElementById('bounces_filter').value = dn;
     bouncesFilterChanged();
     break;
   case "K".charCodeAt(0):
@@ -766,7 +778,13 @@ function keyDown(e) {
       numbers = [0];
     }
     if (numbers.length == 0) numbers = [0];
-    document.getElementById('bounces_filter').value = numbers[0]+1;
+    let un = numbers[0]+1;
+    while (un < 1000 &&
+           allStatesAll.filter(s => s.numBounces == un).length == 0) {
+      un++;
+    } 
+    // document.getElementById('bounces_filter').value = numbers[0]+1;
+    document.getElementById('bounces_filter').value = un;
     bouncesFilterChanged();
     break;
   }
