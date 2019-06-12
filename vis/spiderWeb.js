@@ -190,7 +190,8 @@ function updateSpiderWebVis() {
       c = d3.hsl(c).brighter(1);
       svg.append('path')
         .attr("fill", "none")
-        .attr("stroke", c)
+        .attr("stroke", '#888888')
+        // .attr("stroke", c)
         .attr("stroke-width", 0.4)
         .attr('d', line(s));
     }
@@ -246,13 +247,13 @@ function updateSpiderWebVis() {
   // circles
   //---------------------
   addCircle('spider_web_svg', states, -1/3, 1/3)
-    // .attr("cx", d => xValue(d, xoffset, xScale))
-    // .attr("cy", d => yValue(d, yScale))
+    .attr("cx", d => xValue(d, xoffset, xScale))
+    .attr("cy", d => yValue(d, yScale))
     // .attr("r", d => sizeScale(d.energy))
-    .attr('transform', function(d) {
-      return 'translate(' + xValue(d, xoffset, xScale) + ', ' +
-        yValue(d, yScale) + ')';
-    })
+    // .attr('transform', function(d) {
+    //   return 'translate(' + xValue(d, xoffset, xScale) + ', ' +
+    //     yValue(d, yScale) + ')';
+    // })
   ;
 
 }

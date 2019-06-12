@@ -26,8 +26,8 @@ function color(i) {
 }
 
 function getColor(d) {
-  return color(d.numBounces);
-  // return color(getRockingNumber(d));
+  // return color(d.numBounces);
+  return color(getRockingNumber(d));
 }
 
 function power_of_2(n) {
@@ -161,8 +161,8 @@ function addCircle(svg_id, states, minE, maxE) {
 
   states = states.filter(s => s.energy >= minE && s.energy <= maxE);
 
-  // return svg.selectAll("circle")
-  return svg.selectAll("#state")
+  return svg.selectAll("circle")
+  // return svg.selectAll("#state")
     .data(states)
     .enter()
     .append("a")
@@ -171,11 +171,10 @@ function addCircle(svg_id, states, minE, maxE) {
           `http://edwardsjohnmartin.github.io/MagPhyx/` +
           `?initparams=1,0,0,${d.pr},${d.ptheta},${d.pphi}`)
     .attr("target", "_magphyx")
-    // .append("circle")
-    .append('path')
-    // .attr('d', pathData)
-    .attr('d', d => getSymbol(d))
-    .attr("id", "state")
+    .append("circle")
+    // .append('path')
+    // .attr('d', d => getSymbol(d))
+    // .attr("id", "state")
     .attr("fill", d => getColor(d))
     .attr("fill-opacity", d => {
       return d.phase == 0 ? 1 : 0.1})
@@ -291,12 +290,12 @@ function updateStatesVis() {
   svg.append("g").attr("class", "brush").call(brush);
 
   addCircle('states_svg', states, minE, maxE)
-    // .attr("cx", function(d) { return xoffset + eScale(d.energy); })
-    // .attr("cy", function(d) { return pphiScale(d.pphi); })
-    .attr('transform', function(d) {
-      return 'translate(' + (xoffset + eScale(d.energy)) + ', ' +
-        pphiScale(d.pphi) + ')';
-    })
+    .attr("cx", function(d) { return xoffset + eScale(d.energy); })
+    .attr("cy", function(d) { return pphiScale(d.pphi); })
+    // .attr('transform', function(d) {
+    //   return 'translate(' + (xoffset + eScale(d.energy)) + ', ' +
+    //     pphiScale(d.pphi) + ')';
+    // })
   ;
 }
 
