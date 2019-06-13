@@ -576,11 +576,11 @@ function haveSharedFactor(a, b, c) {
 function init() {
   document.onkeydown = keyDown;
 
-  let modes = parseNumbers(
-    document.getElementById('wbounces_filter').value, true);
-  for (let i = 0; i < modes.length; i++) {
-    cmap[modes[i]] = i;
-  }
+  // let modes = parseNumbers(
+  //   document.getElementById('wbounces_filter').value, true);
+  // for (let i = 0; i < modes.length; i++) {
+  //   cmap[modes[i]] = i;
+  // }
 
   var details = document.getElementById('details');
   details.innerHTML = getDetailsHTML(null);
