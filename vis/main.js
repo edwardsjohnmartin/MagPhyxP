@@ -137,7 +137,8 @@ function getDetailsHTML(d) {
 }
 
 function getRadius(d) {
-  return d.unique ? radius : 3*radius/4;
+  return radius;
+  // return d.unique ? radius : 3*radius/4;
 }
 
 let symbolSize = 30;
