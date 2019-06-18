@@ -16,3 +16,14 @@
 tr {
     vertical-align: top;
 }
+
+svg {
+    /*font: italic 16px times;*/
+    /*font-size: 96px;*/
+}
+
+.axis { font: 18px times; }
+.axis-label {
+    font: 22px times;
+    font-style: italic;
+}

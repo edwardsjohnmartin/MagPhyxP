@@ -52,16 +52,18 @@ function setYLabel(yl) {
   } else if (t == 1) {
     yl.append('text')
       .html('E')
+      .attr("class", "axis-label")
     ;
   } else if (t == 2) {
     yl.append('text')
       .html('(8(E+1/3)')
+      .attr("class", "axis-label")
       .append('tspan')
       .attr('baseline-shift', 'super')
-      .style("font", "12px times")
+      // .style("font", "12px times")
       .html('1/2')
       .append('tspan')
-      .style("font", "16px times")
+      // .style("font", "16px times")
       .html('m/T')
     ;
   }
@@ -98,8 +100,8 @@ function updateSpiderWebVis() {
     // filter(s => //s.phase == 0 &&
     //        s.ptheta_rocking == s.pphi_rocking);
 
-  let minx = 20;
-  let maxx = 740;
+  let minx = 50;
+  let maxx = 730;
   let miny = 20;
   let maxy = 580;
 
@@ -118,6 +120,7 @@ function updateSpiderWebVis() {
     // .domain([minT, 50])
     .domain([getT(minT), Math.ceil(getT(Tmax))])
     .range([minx, maxx]);
+    // .range([20, maxx]);
 
   let sizeScale = d3.scaleLinear()
     .domain([-1/3, 0])
@@ -130,27 +133,38 @@ function updateSpiderWebVis() {
   svg = d3.select("#spider_web_svg");
   svg.selectAll('*').remove();
 
-  let xoffset = 60;
+  let xoffset = minx;
 
   // x axis
   let tickValues = [...Array(Math.ceil(getT(Tmax))+1).keys()].slice(1);
   svg.append("g")
+    .attr("class", "axis")
     .attr('transform', `translate(${xoffset}, ${maxy+20})`)
     .call(x_axis.tickValues(tickValues))
   ;
   svg.append("g")
-    .attr('transform', `translate(${xoffset + (minx+maxx)/2}, ${maxy+60})`)
+    .attr("class", "axis")
+    .attr('transform', `translate(${xoffset + (minx+maxx)/2}, ${maxy+70})`)
     .append('text')
-    .html('T/T2')
+    // .html('T/T2')
+    .html('T/T')
+    .attr("class", "axis-label")
+    .append('tspan')
+    .attr('baseline-shift', 'sub')
+    // .attr("class", "axis-label")
+    // .style("font", "16px times")
+    .html('2')
   ;
 
   // y axis
   svg.append("g")
-    .attr('transform', `translate(${xoffset}, ${miny-20})`)
+    .attr("class", "axis")
+    .attr('transform', `translate(${xoffset+20}, ${miny-20})`)
     .call(y_axis)
   ;
   let yl = svg.append("g")
-    .attr('transform', `translate(20, ${(maxy-miny)/2}) rotate(${-90})`);
+    .attr("class", "axis")
+    .attr('transform', `translate(15, ${(maxy-miny)/2}) rotate(${-90})`);
   setYLabel(yl);
 
   // // y2 axis

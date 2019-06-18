@@ -214,7 +214,7 @@ function updateStatesVis() {
   states = allStates.filter(filterState);
   bStates = bifurcationStates.filter(wfilterState);
 
-  let minx = 20;
+  let minx = 60;
   let maxx = 680;
   let miny = 20;
   let maxy = 580;
@@ -248,28 +248,39 @@ function updateStatesVis() {
     details.innerHTML = "E = " + E;
   });
 
-  let xoffset = 60;
+  // let xoffset = 60;
+  let xoffset = minx;
 
   // x axis
   svg.append("g")
+    .attr("class", "axis")
     .attr('transform', `translate(${xoffset}, ${pphiScale(minpphi)+20})`)
     .call(x_axis)
   ;
   svg.append("g")
-    .attr('transform', `translate(${xoffset + (minx+maxx)/2}, ${pphiScale(minpphi)+60})`)
+    .attr("class", "axis")
+    .attr('transform', `translate(${xoffset + (minx+maxx)/2}, ${pphiScale(minpphi)+70})`)
     .append('text')
-    .html('energy')
+    .html('E')
+    .attr("class", "axis-label")
   ;
 
   // y axis
   svg.append("g")
-    .attr('transform', `translate(${xoffset}, ${pphiScale(maxpphi)-20})`)
+    .attr("class", "axis")
+    .attr('transform', `translate(${xoffset+30}, ${pphiScale(maxpphi)-20})`)
     .call(y_axis)
   ;
   svg.append("g")
-    .attr('transform', `translate(20, ${pphiScale((maxpphi-minpphi)/2)}) rotate(${-90})`)
+    .attr("class", "axis")
+    .attr('transform', `translate(15, ${pphiScale((maxpphi-minpphi)/2)}) rotate(${-90})`)
     .append('text')
-    .html('p&phi;')
+    .attr("class", "axis-label")
+    // .style('font', 'italic 16px times')
+    .html('p')
+    .append('tspan')
+    .attr('baseline-shift', 'sub')
+    .html('&phi;')
   ;
 
   let svgBounds = svg.node().getBoundingClientRect();
