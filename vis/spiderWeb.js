@@ -13,6 +13,7 @@ function xValue(d, xoffset, xScale) {
   return xoffset + xScale(getT(d.T));
 }
 
+// Returns the scaled y-coordinate direction of a data point.
 function yValue(d, yScale) {
   let t = getSpiderType();
   if (t == 0)
@@ -115,6 +116,11 @@ function updateSpiderWebVis() {
   // console.log(getT(Tmax));
 
   let yScale = getYScale(miny, maxy);
+  // let yAxisScale = getYScale(0, maxy);
+
+  let yAxisScale = d3.scaleLinear()
+    .domain([yScale.invert(600), 0])
+    .range([maxy, 0]);
 
   let xScale = d3.scaleLinear()
     // .domain([minT, 50])
@@ -122,12 +128,23 @@ function updateSpiderWebVis() {
     .range([minx, maxx]);
     // .range([20, maxx]);
 
+  let xAxisScale = d3.scaleLinear()
+    .domain([xScale.invert(0), Math.ceil(getT(Tmax))])
+    .range([0, maxx]);
+
   let sizeScale = d3.scaleLinear()
     .domain([-1/3, 0])
     .range([2, 5]);
 
-  let x_axis = d3.axisBottom().scale(xScale);
-  let y_axis = d3.axisLeft().scale(yScale);
+  // let x_axis = d3.axisBottom().scale(xScale);
+  let x_axis = d3.axisBottom().scale(xAxisScale);
+  x_axis.tickSizeOuter(0);
+  let tickSize = x_axis.tickSizeInner();
+
+  // let y_axis = d3.axisLeft().scale(yScale);
+  let y_axis = d3.axisLeft().scale(yAxisScale);
+  y_axis.tickSizeOuter(0);
+  y_axis.tickValues([-8/24, -7/24, -6/24, -5/24, -4/24, -3/24, -2/24, -1/24, 0]);
   let y2_axis = d3.axisRight().scale(yScale);
 
   svg = d3.select("#spider_web_svg");
@@ -141,6 +158,8 @@ function updateSpiderWebVis() {
     .attr("class", "axis")
     .attr('transform', `translate(${xoffset}, ${maxy+20})`)
     .call(x_axis.tickValues(tickValues))
+    .selectAll(".tick line")
+    .attr("transform", `translate(0,-${tickSize})`)
   ;
   svg.append("g")
     .attr("class", "axis")
@@ -159,8 +178,11 @@ function updateSpiderWebVis() {
   // y axis
   svg.append("g")
     .attr("class", "axis")
-    .attr('transform', `translate(${xoffset+20}, ${miny-20})`)
+    // .attr('transform', `translate(${xoffset+20}, ${miny-20})`)
+    .attr('transform', `translate(${xoffset+20}, ${miny})`)
     .call(y_axis)
+    .selectAll(".tick line")
+    .attr("transform", `translate(${tickSize},0)`)
   ;
   let yl = svg.append("g")
     .attr("class", "axis")

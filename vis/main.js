@@ -237,6 +237,7 @@ function updateStatesVis() {
 
   let x_axis = d3.axisBottom().scale(eScale);
   let y_axis = d3.axisLeft().scale(pphiScale);
+  y_axis.tickSizeOuter(0);
 
   svg = d3.select("#states_svg");
   svg.selectAll('*').remove();
