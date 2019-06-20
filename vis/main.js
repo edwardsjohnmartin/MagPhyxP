@@ -160,7 +160,7 @@ function getSymbol(d) {
 function addCircle(svg_id, states, minE, maxE) {
   let svg = d3.select('#' + svg_id);
 
-  // states = states.filter(s => s.energy >= minE && s.energy <= maxE);
+  states = states.filter(s => s.energy >= minE && s.energy <= maxE);
 
   return svg.selectAll("circle")
   // return svg.selectAll("#state")
@@ -194,7 +194,7 @@ let minE_ = null;
 let maxE_ = null;
 
 let logE = false;
-logE = true;
+// let logE = true;
 
 function getE(e) {
   if (logE) {

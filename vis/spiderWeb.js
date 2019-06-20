@@ -114,7 +114,8 @@ function updateSpiderWebVis() {
   // let y_axis = d3.axisLeft().scale(yScale);
   let y_axis = d3.axisLeft().scale(yAxisScale);
   y_axis.tickSizeOuter(0);
-  y_axis.tickValues([-8/24, -7/24, -6/24, -5/24, -4/24, -3/24, -2/24, -1/24, 0]);
+  // y_axis.tickValues([-8/24, -7/24, -6/24, -5/24, -4/24, -3/24, -2/24, -1/24, 0]);
+  y_axis.tickValues([-0.35, -0.3, -0.25, -0.2, -0.15, -0.1, -0.05, 0]);
   let y2_axis = d3.axisRight().scale(yScale);
 
   svg = d3.select("#spider_web_svg");
