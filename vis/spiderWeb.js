@@ -59,12 +59,13 @@ function updateSpiderWebVis() {
   let svgHeight = rect.height;
 
   // Compute the number of pixels the data portion of the plot will take up.
-  let axisDataGap = 20;
+  let axisDataGap = 0;
 
+  // Borders are the sizes of the borders
   let leftBorder = axisDataGap+80;
-  let rightBorder = axisDataGap;
-  let bottomBorder = axisDataGap+30;
-  let topBorder = axisDataGap;
+  let rightBorder = axisDataGap+80;
+  let bottomBorder = axisDataGap+92;
+  let topBorder = axisDataGap+20;
   let dataWidth = svgWidth-(leftBorder+rightBorder);
   let dataHeight = svgHeight-(bottomBorder+topBorder);
 
@@ -91,7 +92,8 @@ function updateSpiderWebVis() {
 
   let xScale = d3.scaleLinear()
     // .domain([minT, 50])
-    .domain([getT(minT), Math.ceil(getT(Tmax))])
+    // .domain([getT(minT), Math.ceil(getT(Tmax))])
+    .domain([0, Math.ceil(getT(Tmax))])
     // .range([minx, maxx]);
     .range([0, dataWidth]);
     // .range([20, maxx]);
@@ -106,17 +108,20 @@ function updateSpiderWebVis() {
     .domain([-1/3, 0])
     .range([2, 5]);
 
-  // let x_axis = d3.axisBottom().scale(xScale);
-  let x_axis = d3.axisBottom().scale(xAxisScale);
+  let x_axis = d3.axisBottom().scale(xScale);
   x_axis.tickSizeOuter(0);
   let tickSize = x_axis.tickSizeInner();
 
-  // let y_axis = d3.axisLeft().scale(yScale);
+  let x2_axis = d3.axisTop().scale(xScale);
+  x2_axis.tickSizeOuter(0);
+
   let y_axis = d3.axisLeft().scale(yAxisScale);
   y_axis.tickSizeOuter(0);
-  // y_axis.tickValues([-8/24, -7/24, -6/24, -5/24, -4/24, -3/24, -2/24, -1/24, 0]);
   y_axis.tickValues([-0.35, -0.3, -0.25, -0.2, -0.15, -0.1, -0.05, 0]);
-  let y2_axis = d3.axisRight().scale(yScale);
+
+  let y2_axis = d3.axisRight().scale(yAxisScale);
+  y2_axis.tickSizeOuter(0);
+  y2_axis.tickValues([-0.35, -0.3, -0.25, -0.2, -0.15, -0.1, -0.05, 0]);
 
   svg = d3.select("#spider_web_svg");
   svg.selectAll('*').remove();
@@ -124,55 +129,71 @@ function updateSpiderWebVis() {
   let xoffset = minx;
 
   // x axis
-  let tickValues = [...Array(Math.ceil(getT(Tmax))+0).keys()].slice(1);
+  let tickValues = [];
+  for (let i = 0; i < Math.ceil(getT(Tmax))+1; i++) {
+    tickValues.push(i);
+  }
   svg.append("g")
     .attr("class", "axis")
-    // .attr('transform', `translate(${xoffset}, ${maxy+20})`)
-    .attr('transform', `translate(${leftBorder}, ${maxy+20})`)
+    .attr('transform', `translate(${leftBorder}, ${svgHeight-bottomBorder})`)
     .call(x_axis.tickValues(tickValues))
     .selectAll(".tick line")
     .attr("transform", `translate(0,-${tickSize})`)
   ;
   svg.append("g")
     .attr("class", "axis")
-    .attr('transform', `translate(${xoffset + (minx+maxx)/2}, ${maxy+70})`)
+    .attr('transform', `translate(${leftBorder + (minx+maxx)/2}, ${svgHeight-bottomBorder+50})`)
     .append('text')
-    // .html('T/T2')
     .html('T/T')
     .attr("class", "axis-label")
     .append('tspan')
     .attr('baseline-shift', 'sub')
-    // .attr("class", "axis-label")
-    // .style("font", "16px times")
     .html('2')
+  ;
+
+  // x2 axis
+  svg.append("g")
+    .attr("class", "axis")
+    .attr('transform', `translate(${leftBorder}, ${topBorder})`)
+    .call(x2_axis.tickValues(tickValues))
+    .selectAll(".tick line")
+    .attr("transform", `translate(0,${tickSize})`)
   ;
 
   // y axis
   svg.append("g")
     .attr("class", "axis")
-    // .attr('transform', `translate(${xoffset+20}, ${miny-20})`)
-    .attr('transform', `translate(${xoffset+20}, ${miny})`)
+    .attr('transform', `translate(${leftBorder}, ${miny})`)
     .call(y_axis)
     .selectAll(".tick line")
     .attr("transform", `translate(${tickSize},0)`)
   ;
   let yl = svg.append("g")
     .attr("class", "axis")
-    .attr('transform', `translate(15, ${(maxy-miny)/2}) rotate(${-90})`);
-
-  yl.append('text')
+    .attr('transform', `translate(15, ${(maxy-miny)/2}) rotate(${-90})`)
+    .append('text')
     .html('E')
     .attr("class", "axis-label")
   ;
 
-  // // y2 axis
-  // svg.append("g")
-  //   .attr('transform', `translate(${xoffset+700}, ${miny-20})`)
-  //   .call(y2_axis)
-  // ;
-  // let y2l = svg.append("g")
-  //   .attr('transform', `translate(20, ${(maxy-miny)/2}) rotate(${-90})`);
-  // setYLabel(y2l);
+  // y2 axis
+  svg.append("g")
+    .attr("class", "axis")
+    .attr('transform', `translate(${svgWidth-rightBorder}, ${miny})`)
+    .call(y2_axis)
+    .selectAll(".tick line")
+    .attr("transform", `translate(${-tickSize},0)`)
+  ;
+
+  // Create data graphic
+  let dataGroup = svg.append("svg")
+    // .attr("transform", `translate(${leftBorder},${0})`)
+    .attr('id', 'spider_web_data_group')
+    .attr('x', leftBorder)
+    .attr('width', svgWidth-(leftBorder+rightBorder))
+    .attr('height', svgHeight-(bottomBorder+topBorder))
+    // .attr('viewBox', '0 0 20 20')
+  ;
 
   //---------------------
   // num bounces lines
@@ -195,13 +216,14 @@ function updateSpiderWebVis() {
 
       let line = d3.line()
         // .x(d => xValue(d, xoffset, xScale))
-        .x(d => xValue(d, leftBorder, xScale))
+        // .x(d => xValue(d, leftBorder, xScale))
+        .x(d => xValue(d, 0, xScale))
         .y(d => yValue(d, yScale))
         .curve(d3.curveCatmullRom.alpha(0.5))
       ;
       let c = color(s[0].numBounces);
       c = d3.hsl(c).brighter(1);
-      svg.append('path')
+      dataGroup.append('path')
         .attr("fill", "none")
         .attr("stroke", '#888888')
         // .attr("stroke", c)
@@ -240,12 +262,13 @@ function updateSpiderWebVis() {
 
       line = d3.line()
         // .x(d => xValue(d, xoffset, xScale))
-        .x(d => xValue(d, leftBorder, xScale))
+        // .x(d => xValue(d, leftBorder, xScale))
+        .x(d => xValue(d, 0, xScale))
         .y(d => yValue(d, yScale))
         .curve(d3.curveCatmullRom.alpha(1.1))
       ;
 
-      let path = svg.append('path')
+      let path = dataGroup.append('path')
         .attr("fill", "none")
         .attr("stroke", '#888888')
         .attr("stroke-width", 0.4)
@@ -260,9 +283,11 @@ function updateSpiderWebVis() {
   //---------------------
   // circles
   //---------------------
-  addCircle('spider_web_svg', states, -1/3, 1/3)
+  // addCircle('spider_web_svg', states, -1/3, 1/3)
+  addCircle('spider_web_data_group', states, -1/3, 1/3)
     // .attr("cx", d => xValue(d, xoffset, xScale))
-    .attr("cx", d => xValue(d, leftBorder, xScale))
+    // .attr("cx", d => xValue(d, leftBorder, xScale))
+    .attr("cx", d => xValue(d, 0, xScale))
     .attr("cy", d => yValue(d, yScale))
     // .attr("r", d => sizeScale(d.energy))
     // .attr('transform', function(d) {
@@ -270,5 +295,4 @@ function updateSpiderWebVis() {
     //     yValue(d, yScale) + ')';
     // })
   ;
-
 }

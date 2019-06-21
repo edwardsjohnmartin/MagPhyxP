@@ -261,6 +261,7 @@ function updateStatesVis() {
     // x_axis = x_axis.formatTick(1e5);
     x_axis = x_axis.ticks(5, ',.1e');
   }
+  x_axis.tickValues([-0.35, -0.3, -0.25, -0.2, -0.15, -0.1, -0.05, 0]);
   let y_axis = d3.axisLeft().scale(pphiScale);
   y_axis.tickSizeOuter(0);
 
