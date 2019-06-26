@@ -193,18 +193,6 @@ function addCircle(svg_id, states, minE, maxE) {
 let minE_ = null;
 let maxE_ = null;
 
-let logE = false;
-// let logE = true;
-
-function getE(e) {
-  if (logE) {
-    // return Math.log(e+1/3);
-    // console.log(e+1/3);
-    return (e+1/3);
-  }
-  return e;
-}
-
 function updateStatesVis() {
   let allStates = allStatesAll;
   let bifurcationStates = bifurcationStatesAll;
@@ -231,8 +219,8 @@ function updateStatesVis() {
   let miny = 20;
   let maxy = 580;
 
-  let minE = d3.min(allStates, d=>getE(d.energy));
-  let maxE = d3.max(allStates, d=>getE(d.energy));
+  let minE = d3.min(allStates, d=>d.energy);
+  let maxE = d3.max(allStates, d=>d.energy);
   // console.log('minE = ' + minE);
   // console.log('maxE = ' + maxE);
   if (minE_ != null) {
@@ -245,23 +233,17 @@ function updateStatesVis() {
   let eScale = d3.scaleLinear()
     .domain([minE, maxE])
     .range([minx, maxx]);
-  if (logE) {
-    eScale = d3.scaleLog()
-    // eScale = d3.scaleLinear()
-      .domain([minE, maxE])
-      .range([minx, maxx]);
-  }
   let pphiScale = d3.scaleLinear()
     .domain([minpphi, maxpphi])
     .range([maxy, miny]);
 
-  let x_axis = d3.axisBottom().scale(eScale);
-  if (logE) {
-    // x_axis = x_axis.tickFormat(d3.format("1e5"));
-    // x_axis = x_axis.formatTick(1e5);
-    x_axis = x_axis.ticks(5, ',.1e');
-  }
-  x_axis.tickValues([-0.35, -0.3, -0.25, -0.2, -0.15, -0.1, -0.05, 0]);
+  let x_axis = d3.axisBottom()
+    .scale(eScale)
+    .tickSizeOuter(0)
+    .tickValues([-0.35, -0.3, -0.25, -0.2, -0.15, -0.1, -0.05, 0])
+  ;
+  let tickSize = x_axis.tickSizeInner();
+
   let y_axis = d3.axisLeft().scale(pphiScale);
   y_axis.tickSizeOuter(0);
 
@@ -283,6 +265,8 @@ function updateStatesVis() {
     .attr("class", "axis")
     .attr('transform', `translate(${xoffset}, ${pphiScale(minpphi)+20})`)
     .call(x_axis)
+    .selectAll(".tick line")
+    .attr("transform", `translate(0,-${tickSize})`)
   ;
   svg.append("g")
     .attr("class", "axis")
@@ -329,7 +313,7 @@ function updateStatesVis() {
   svg.append("g").attr("class", "brush").call(brush);
 
   addCircle('states_svg', states, minE, maxE)
-    .attr("cx", function(d) { return xoffset + eScale(getE(d.energy)); })
+    .attr("cx", function(d) { return xoffset + eScale(d.energy); })
     .attr("cy", function(d) { return pphiScale(d.pphi); })
     // .attr('transform', function(d) {
     //   return 'translate(' + (xoffset + eScale(d.energy)) + ', ' +
