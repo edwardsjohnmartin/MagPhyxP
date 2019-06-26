@@ -190,8 +190,8 @@ function addCircle(svg_id, states, minE, maxE) {
   ;
 }
 
-let minE_ = null;
-let maxE_ = null;
+let minE_ = -0.35;
+let maxE_ = 0;
 
 function updateStatesVis() {
   let allStates = allStatesAll;
@@ -214,7 +214,26 @@ function updateStatesVis() {
   states = allStates.filter(filterState);
   bStates = bifurcationStates.filter(wfilterState);
 
-  let minx = 60;
+  let rect = document.getElementById('states_svg').getBoundingClientRect();
+  let svgWidth = rect.width;
+  let svgHeight = rect.height;
+
+  // Axis coordinates are for the actual vertical or horizontal line in svg coordinates
+  // (with y=0 at the bottom).
+
+  // Location of the y axis on the left
+  let leftAxisX = 80;
+  // Location of the y axis on the right
+  let rightAxisX = svgWidth-80;
+  // Location of the x axis on the bottom
+  let bottomAxisY = 92;
+  // Location of the x axis on the top
+  let topAxisY = svgHeight-20;
+  // Dimensions of the actual plot svg
+  let dataWidth = rightAxisX - leftAxisX;
+  let dataHeight = topAxisY-bottomAxisY;
+
+  // let minx = 60;
   let maxx = 680;
   let miny = 20;
   let maxy = 580;
@@ -232,7 +251,10 @@ function updateStatesVis() {
 
   let eScale = d3.scaleLinear()
     .domain([minE, maxE])
-    .range([minx, maxx]);
+    // .range([minx, maxx]);
+    // .range([leftAxisX, maxx]);
+    // .range([0, maxx]);
+    .range([0, dataWidth]);
   let pphiScale = d3.scaleLinear()
     .domain([minpphi, maxpphi])
     .range([maxy, miny]);
@@ -244,33 +266,33 @@ function updateStatesVis() {
   ;
   let tickSize = x_axis.tickSizeInner();
 
-  let y_axis = d3.axisLeft().scale(pphiScale);
-  y_axis.tickSizeOuter(0);
+  let y_axis = d3.axisLeft()
+    .scale(pphiScale)
+    .tickSizeOuter(0)
+  ;
 
   svg = d3.select("#states_svg");
   svg.selectAll('*').remove();
 
   svg.on("mousemove", function () {
     let p = d3.mouse(this);
-    let E = eScale.invert(p[0]-xoffset);
+    // let E = eScale.invert(p[0]-xoffset);
+    let E = eScale.invert(p[0]-leftAxisX);
     var details = document.getElementById('epos');
     details.innerHTML = "E = " + E;
   });
 
-  // let xoffset = 60;
-  let xoffset = minx;
-
   // x axis
   svg.append("g")
     .attr("class", "axis")
-    .attr('transform', `translate(${xoffset}, ${pphiScale(minpphi)+20})`)
+    .attr('transform', `translate(${leftAxisX}, ${pphiScale(minpphi)+20})`)
     .call(x_axis)
     .selectAll(".tick line")
     .attr("transform", `translate(0,-${tickSize})`)
   ;
   svg.append("g")
     .attr("class", "axis")
-    .attr('transform', `translate(${xoffset + (minx+maxx)/2}, ${pphiScale(minpphi)+70})`)
+    .attr('transform', `translate(${leftAxisX + dataWidth/2}, ${pphiScale(minpphi)+70})`)
     .append('text')
     .html('E')
     .attr("class", "axis-label")
@@ -279,7 +301,8 @@ function updateStatesVis() {
   // y axis
   svg.append("g")
     .attr("class", "axis")
-    .attr('transform', `translate(${xoffset+30}, ${pphiScale(maxpphi)-20})`)
+    // .attr('transform', `translate(${xoffset+30}, ${pphiScale(maxpphi)-20})`)
+    .attr('transform', `translate(${leftAxisX}, ${pphiScale(maxpphi)-20})`)
     .call(y_axis)
   ;
   svg.append("g")
@@ -294,31 +317,52 @@ function updateStatesVis() {
     .html('&phi;')
   ;
 
-  let svgBounds = svg.node().getBoundingClientRect();
-  let svgWidth = svgBounds.width;// - svg.margin.left - svg.margin.right;
-  let svgHeight = 800;
+  // let svgBounds = svg.node().getBoundingClientRect();
+  // let svgWidth = svgBounds.width;// - svg.margin.left - svg.margin.right;
+  // let svgHeight = 800;
 
   let barHeight = 30;
   let bary = pphiScale(minpphi)+10-barHeight/2;
   let brush = d3.brushX()
-    .extent([[xoffset+minx, bary], [xoffset+maxx, bary+barHeight+10]])
+    // .extent([[xoffset+minx, bary], [xoffset+maxx, bary+barHeight+10]])
+    // .extent([[xoffset+leftAxisX, bary], [xoffset+maxx, bary+barHeight+10]])
+    // .extent([[leftAxisX+leftAxisX, bary], [leftAxisX+maxx, bary+barHeight+10]])
+    .extent([[leftAxisX+leftAxisX, bary], [rightAxisX, bary+barHeight+10]])
     .on("end", () => {
       let x0 = d3.event.selection[0];
       let x1 = d3.event.selection[1];
-      minE_ = eScale.invert(x0-xoffset);
-      maxE_ = eScale.invert(x1-xoffset);
+      // minE_ = eScale.invert(x0-xoffset);
+      minE_ = eScale.invert(x0-leftAxisX);
+      // maxE_ = eScale.invert(x1-xoffset);
+      maxE_ = eScale.invert(x1-leftAxisX);
       updateStatesVis();
     })
   ;
   svg.append("g").attr("class", "brush").call(brush);
 
   addCircle('states_svg', states, minE, maxE)
-    .attr("cx", function(d) { return xoffset + eScale(d.energy); })
+    // .attr("cx", function(d) { return xoffset + eScale(d.energy); })
+    .attr("cx", function(d) { return leftAxisX + eScale(d.energy); })
     .attr("cy", function(d) { return pphiScale(d.pphi); })
-    // .attr('transform', function(d) {
-    //   return 'translate(' + (xoffset + eScale(d.energy)) + ', ' +
-    //     pphiScale(d.pphi) + ')';
-    // })
+  ;
+
+  //---------------------
+  // Debug
+  //---------------------
+  let debug = d3.select('#states_svg');
+  debug.selectAll("#debugcircle")
+    .data([1])
+    .enter()
+    .append("circle")
+    .attr('class', 'debugcircle')
+    .attr("fill", 'red')
+    .attr("stroke", 'red')
+    .attr("stroke-width", 1)
+    .attr("r", 3)
+    // .attr("cx", leftAxisX)
+    .attr("cx", leftAxisX + eScale(-0.25))
+    // .attr("cy", svgHeight-topAxisY)
+    .attr("cy", svgHeight-bottomAxisY)
   ;
 }
 

@@ -289,6 +289,7 @@ function updateSpiderWebVis() {
   //   .data([1])
   //   .enter()
   //   .append("circle")
+  //   .attr('class', 'debugcircle')
   //   .attr("fill", 'red')
   //   .attr("stroke", 'red')
   //   .attr("stroke-width", 1)
