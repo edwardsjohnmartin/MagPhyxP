@@ -190,8 +190,8 @@ function addCircle(svg_id, states, minE, maxE) {
   ;
 }
 
-let minE_ = -0.35;
-let maxE_ = 0;
+// let minE_ = -0.35;
+// let maxE_ = 0.02;
 
 function updateStatesVis() {
   let allStates = allStatesAll;
@@ -238,16 +238,20 @@ function updateStatesVis() {
   let miny = 20;
   let maxy = 580;
 
-  let minE = d3.min(allStates, d=>d.energy);
-  let maxE = d3.max(allStates, d=>d.energy);
+  // let minE = d3.min(allStates, d=>d.energy);
+  // let maxE = d3.max(allStates, d=>d.energy);
+  let minE = -0.35;
+  let maxE = 0.02;
+
   // console.log('minE = ' + minE);
   // console.log('maxE = ' + maxE);
-  if (minE_ != null) {
-    minE = minE_;
-    maxE = maxE_;
-  }
-  let minpphi = d3.min(allStates, d=>d.pphi);
-  let maxpphi = d3.max(allStates, d=>d.pphi);
+  // if (minE_ != null) {
+  //   minE = minE_;
+  //   maxE = maxE_;
+  // }
+  let minpphi = -0.01;//d3.min(allStates, d=>d.pphi);
+  // let maxpphi = 0.21;//d3.max(allStates, d=>d.pphi);
+  let maxpphi = 0.19;
 
   let eScale = d3.scaleLinear()
     .domain([minE, maxE])
@@ -257,28 +261,47 @@ function updateStatesVis() {
     .range([0, dataWidth]);
   let pphiScale = d3.scaleLinear()
     .domain([minpphi, maxpphi])
-    .range([maxy, miny]);
-  let yAxisScale = d3.scaleLinear()
-    // .domain([minpphi, maxpphi])
-    .domain([-.01, maxpphi])
-    .range([maxy, 0]);
+    // .range([maxy, miny]);
+    .range([svgHeight-bottomAxisY, svgHeight-topAxisY]);
+  let yAxisScale = pphiScale;
+  // let yAxisScale = d3.scaleLinear()
+  //   // .domain([minpphi, maxpphi])
+  //   .domain([minpphi, maxpphi])
+  //   // .range([maxy, 0]);
+  //   .range([svgHeight-bottomAxisY, 0]);
     // .domain([yScale.invert(600), 0])
     // .range([maxy, 0]);
-  // console.log(pphiScale(0));
-  // console.log(yAxisScale(0));
+
+  let xtickValues = [-0.35, -0.3, -0.25, -0.2, -0.15, -0.1, -0.05, 0];
+  let ytickValues = [0, 0.02, 0.04, 0.06, 0.08, 0.1, 0.12, 0.14, 0.16,
+                     0.18, 0.2];
 
   let x_axis = d3.axisBottom()
     .scale(eScale)
-    .tickSizeOuter(0)
-    .tickValues([-0.35, -0.3, -0.25, -0.2, -0.15, -0.1, -0.05, 0])
-  ;
+    .tickSizeOuter(0) 
+    .tickValues(xtickValues)
+ ;
   let tickSize = x_axis.tickSizeInner();
+
+  let x2_axis = d3.axisTop()
+    .scale(eScale)
+    .tickSizeOuter(0)
+    .tickValues(xtickValues)
+    .tickFormat('')
+  ;
 
   let y_axis = d3.axisLeft()
     // .scale(pphiScale)
     .scale(yAxisScale)
     .tickSizeOuter(0)
-    .tickValues([0, 0.02, 0.04, 0.06, 0.08, 0.1, 0.12, 0.14, 0.16, 0.18, 0.2])
+    .tickValues(ytickValues)
+  ;
+
+  let y2_axis = d3.axisRight()
+    .scale(yAxisScale)
+    .tickSizeOuter(0)
+    .tickValues(ytickValues)
+    .tickFormat('')
   ;
 
   svg = d3.select("#states_svg");
@@ -310,35 +333,42 @@ function updateStatesVis() {
     .attr("class", "axis-label")
   ;
 
+  // x2 axis
+  svg.append("g")
+    .attr("class", "axis")
+    .attr('transform', `translate(${leftAxisX}, ${svgHeight-topAxisY})`)
+    .call(x2_axis)
+    .selectAll(".tick line")
+    .attr("transform", `translate(0,${tickSize})`)
+  ;
+
   // y axis
   svg.append("g")
     .attr("class", "axis")
-    // .attr('transform', `translate(${xoffset+30}, ${pphiScale(maxpphi)-20})`)
-    // .attr('transform', `translate(${leftAxisX}, ${pphiScale(maxpphi)-20})`)
-    // .attr('transform', `translate(${leftAxisX}, ${miny})`)
-    .attr('transform', `translate(${leftAxisX}, ${svgHeight-topAxisY})`)
-    // .attr('transform', `translate(${leftAxisX}, ${pphiScale(maxpphi)})`)
-    // .attr('transform', `translate(${leftAxisX}, ${yAxisScale(maxpphi)})`)
+    .attr('transform', `translate(${leftAxisX}, ${0})`)
     .call(y_axis)
     .selectAll(".tick line")
     .attr("transform", `translate(${tickSize},0)`)
   ;
   svg.append("g")
     .attr("class", "axis")
-    // .attr('transform', `translate(15, ${pphiScale((maxpphi-minpphi)/2)}) rotate(${-90})`)
     .attr('transform', `translate(15, ${svgHeight-(topAxisY+bottomAxisY)/2}) rotate(${-90})`)
     .append('text')
     .attr("class", "axis-label")
-    // .style('font', 'italic 16px times')
     .html('p')
     .append('tspan')
     .attr('baseline-shift', 'sub')
     .html('&phi;')
   ;
 
-  // let svgBounds = svg.node().getBoundingClientRect();
-  // let svgWidth = svgBounds.width;// - svg.margin.left - svg.margin.right;
-  // let svgHeight = 800;
+  // y2 axis
+  svg.append("g")
+    .attr("class", "axis")
+    .attr('transform', `translate(${rightAxisX}, ${0})`)
+    .call(y2_axis)
+    .selectAll(".tick line")
+    .attr("transform", `translate(${-tickSize},0)`)
+  ;
 
   let barHeight = 30;
   let bary = pphiScale(minpphi)+10-barHeight/2;
@@ -365,24 +395,24 @@ function updateStatesVis() {
     .attr("cy", function(d) { return pphiScale(d.pphi); })
   ;
 
-  //---------------------
-  // Debug
-  //---------------------
-  let debug = d3.select('#states_svg');
-  debug.selectAll("#debugcircle")
-    .data([1])
-    .enter()
-    .append("circle")
-    .attr('class', 'debugcircle')
-    .attr("fill", 'red')
-    .attr("stroke", 'red')
-    .attr("stroke-width", 1)
-    .attr("r", 3)
-    // .attr("cx", leftAxisX)
-    .attr("cx", leftAxisX + eScale(-0.25))
-    // .attr("cy", svgHeight-topAxisY)
-    .attr("cy", svgHeight-bottomAxisY)
-  ;
+  // //---------------------
+  // // Debug
+  // //---------------------
+  // let debug = d3.select('#states_svg');
+  // debug.selectAll("#debugcircle")
+  //   .data([1])
+  //   .enter()
+  //   .append("circle")
+  //   .attr('class', 'debugcircle')
+  //   .attr("fill", 'red')
+  //   .attr("stroke", 'red')
+  //   .attr("stroke-width", 1)
+  //   .attr("r", 3)
+  //   // .attr("cx", leftAxisX)
+  //   .attr("cx", leftAxisX + eScale(-0.25))
+  //   // .attr("cy", svgHeight-topAxisY)
+  //   .attr("cy", svgHeight-bottomAxisY)
+  // ;
 }
 
 function handleMouseOver(d, i, svg_id, element) {  // Add interactivity
