@@ -331,6 +331,9 @@ function updateStatesVis() {
     .append('text')
     .html('E')
     .attr("class", "axis-label")
+    .append('tspan')
+    .attr('baseline-shift', 'sub')
+    .html('mnp')
   ;
 
   // x2 axis
@@ -359,6 +362,8 @@ function updateStatesVis() {
     .append('tspan')
     .attr('baseline-shift', 'sub')
     .html('&phi;')
+    .append('tspan')
+    .html('(0)')
   ;
 
   // y2 axis

@@ -138,8 +138,13 @@ function updateSpiderWebVis() {
     .attr("class", "axis")
     .attr('transform', `translate(${leftAxisX + dataWidth/2}, ${svgHeight-bottomAxisY+50})`)
     .append('text')
-    .html('T/T')
+    .html('T')
     .attr("class", "axis-label")
+    .append('tspan')
+    .attr('baseline-shift', 'sub')
+    .html('mnp')
+    .append('tspan')
+    .html(' / T')
     .append('tspan')
     .attr('baseline-shift', 'sub')
     .html('2')
@@ -168,6 +173,9 @@ function updateSpiderWebVis() {
     .append('text')
     .html('E')
     .attr("class", "axis-label")
+    .append('tspan')
+    .attr('baseline-shift', 'sub')
+    .html('mnp')
   ;
 
   // y2 axis
