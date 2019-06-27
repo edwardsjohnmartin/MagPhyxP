@@ -258,6 +258,14 @@ function updateStatesVis() {
   let pphiScale = d3.scaleLinear()
     .domain([minpphi, maxpphi])
     .range([maxy, miny]);
+  let yAxisScale = d3.scaleLinear()
+    // .domain([minpphi, maxpphi])
+    .domain([-.01, maxpphi])
+    .range([maxy, 0]);
+    // .domain([yScale.invert(600), 0])
+    // .range([maxy, 0]);
+  // console.log(pphiScale(0));
+  // console.log(yAxisScale(0));
 
   let x_axis = d3.axisBottom()
     .scale(eScale)
@@ -267,8 +275,10 @@ function updateStatesVis() {
   let tickSize = x_axis.tickSizeInner();
 
   let y_axis = d3.axisLeft()
-    .scale(pphiScale)
+    // .scale(pphiScale)
+    .scale(yAxisScale)
     .tickSizeOuter(0)
+    .tickValues([0, 0.02, 0.04, 0.06, 0.08, 0.1, 0.12, 0.14, 0.16, 0.18, 0.2])
   ;
 
   svg = d3.select("#states_svg");
@@ -285,14 +295,16 @@ function updateStatesVis() {
   // x axis
   svg.append("g")
     .attr("class", "axis")
-    .attr('transform', `translate(${leftAxisX}, ${pphiScale(minpphi)+20})`)
+    // .attr('transform', `translate(${leftAxisX}, ${pphiScale(minpphi)+20})`)
+    .attr('transform', `translate(${leftAxisX}, ${svgHeight-bottomAxisY})`)
     .call(x_axis)
     .selectAll(".tick line")
     .attr("transform", `translate(0,-${tickSize})`)
   ;
   svg.append("g")
     .attr("class", "axis")
-    .attr('transform', `translate(${leftAxisX + dataWidth/2}, ${pphiScale(minpphi)+70})`)
+    // .attr('transform', `translate(${leftAxisX + dataWidth/2}, ${pphiScale(minpphi)+70})`)
+    .attr('transform', `translate(${leftAxisX + dataWidth/2}, ${svgHeight-bottomAxisY+50})`)
     .append('text')
     .html('E')
     .attr("class", "axis-label")
@@ -302,12 +314,19 @@ function updateStatesVis() {
   svg.append("g")
     .attr("class", "axis")
     // .attr('transform', `translate(${xoffset+30}, ${pphiScale(maxpphi)-20})`)
-    .attr('transform', `translate(${leftAxisX}, ${pphiScale(maxpphi)-20})`)
+    // .attr('transform', `translate(${leftAxisX}, ${pphiScale(maxpphi)-20})`)
+    // .attr('transform', `translate(${leftAxisX}, ${miny})`)
+    .attr('transform', `translate(${leftAxisX}, ${svgHeight-topAxisY})`)
+    // .attr('transform', `translate(${leftAxisX}, ${pphiScale(maxpphi)})`)
+    // .attr('transform', `translate(${leftAxisX}, ${yAxisScale(maxpphi)})`)
     .call(y_axis)
+    .selectAll(".tick line")
+    .attr("transform", `translate(${tickSize},0)`)
   ;
   svg.append("g")
     .attr("class", "axis")
-    .attr('transform', `translate(15, ${pphiScale((maxpphi-minpphi)/2)}) rotate(${-90})`)
+    // .attr('transform', `translate(15, ${pphiScale((maxpphi-minpphi)/2)}) rotate(${-90})`)
+    .attr('transform', `translate(15, ${svgHeight-(topAxisY+bottomAxisY)/2}) rotate(${-90})`)
     .append('text')
     .attr("class", "axis-label")
     // .style('font', 'italic 16px times')
