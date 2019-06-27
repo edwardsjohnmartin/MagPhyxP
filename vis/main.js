@@ -192,6 +192,12 @@ function addCircle(svg_id, states, minE, maxE) {
 
 // let minE_ = -0.35;
 // let maxE_ = 0.02;
+let defaultMinE = -0.35;
+let defaultMaxE = 0.02;
+let minE = defaultMinE;
+let maxE = defaultMaxE;
+
+let setETick = 0.05;
 
 function updateStatesVis() {
   let allStates = allStatesAll;
@@ -240,8 +246,6 @@ function updateStatesVis() {
 
   // let minE = d3.min(allStates, d=>d.energy);
   // let maxE = d3.max(allStates, d=>d.energy);
-  let minE = -0.35;
-  let maxE = 0.02;
 
   // console.log('minE = ' + minE);
   // console.log('maxE = ' + maxE);
@@ -272,7 +276,17 @@ function updateStatesVis() {
     // .domain([yScale.invert(600), 0])
     // .range([maxy, 0]);
 
-  let xtickValues = [-0.35, -0.3, -0.25, -0.2, -0.15, -0.1, -0.05, 0];
+  // let xtickValues = [-0.35, -0.3, -0.25, -0.2, -0.15, -0.1, -0.05, 0];
+  xtickValues = [];
+  let etick = (maxE - minE)/7;
+  if (setETick) {
+    etick = setETick;
+  }
+  console.log(etick);
+  for (let e = minE; e <= maxE; e += etick) {
+    xtickValues.push(e);
+  }
+  console.log(xtickValues);
   let ytickValues = [0, 0.02, 0.04, 0.06, 0.08, 0.1, 0.12, 0.14, 0.16,
                      0.18, 0.2];
 
@@ -376,19 +390,22 @@ function updateStatesVis() {
   ;
 
   let barHeight = 30;
-  let bary = pphiScale(minpphi)+10-barHeight/2;
+  // let bary = pphiScale(minpphi)+10-barHeight/2;
+  let bary = svgHeight-(bottomAxisY + barHeight/2);
   let brush = d3.brushX()
-    // .extent([[xoffset+minx, bary], [xoffset+maxx, bary+barHeight+10]])
-    // .extent([[xoffset+leftAxisX, bary], [xoffset+maxx, bary+barHeight+10]])
-    // .extent([[leftAxisX+leftAxisX, bary], [leftAxisX+maxx, bary+barHeight+10]])
-    .extent([[leftAxisX+leftAxisX, bary], [rightAxisX, bary+barHeight+10]])
+    .extent([[leftAxisX, bary], [rightAxisX, bary+barHeight]])
     .on("end", () => {
       let x0 = d3.event.selection[0];
       let x1 = d3.event.selection[1];
       // minE_ = eScale.invert(x0-xoffset);
-      minE_ = eScale.invert(x0-leftAxisX);
+      // minE_ = eScale.invert(x0-leftAxisX);
+      minE = eScale.invert(x0-leftAxisX);
       // maxE_ = eScale.invert(x1-xoffset);
-      maxE_ = eScale.invert(x1-leftAxisX);
+      // maxE_ = eScale.invert(x1-leftAxisX);
+      maxE = eScale.invert(x1-leftAxisX);
+      document.getElementById('minE').value = minE;
+      document.getElementById('maxE').value = maxE;
+      setETick = null;
       updateStatesVis();
     })
   ;
@@ -624,6 +641,30 @@ function rockingFilterChanged() {
   updateStatesVis();
 }
 
+function minEChanged() {
+  let f = parseFloat(document.getElementById('minE').value);
+  if (f == f) {
+    minE = f;
+    updateStatesVis();
+  }
+}
+
+function maxEChanged() {
+  let f = parseFloat(document.getElementById('maxE').value);
+  if (f == f) {
+    maxE = f;
+    updateStatesVis();
+  }
+}
+
+function deltaEChanged() {
+  let f = parseFloat(document.getElementById('deltaE').value);
+  if (f == f) {
+    setETick = f;
+    updateStatesVis();
+  }
+}
+
 function spiderLinesChanged() {
   updateSpiderWebVis();
 }
@@ -857,8 +898,14 @@ function keyDown(e) {
 
   switch (e.keyCode) {
   case "R".charCodeAt(0):
-    minE_ = null;
-    maxE_ = null;
+    // minE_ = null;
+    // maxE_ = null;
+    minE = defaultMinE;
+    maxE = defaultMaxE;
+    setETick = 0.05;
+    document.getElementById('minE').value = minE;
+    document.getElementById('maxE').value = maxE;
+    document.getElementById('deltaE').value = setETick;
     updateStatesVis();
     break;
   case "S".charCodeAt(0):

@@ -64,7 +64,18 @@
                                              onchange="phaseFilterChanged()">
               <label for="allphase">All</label>
 
-              <br><br>
+              <br>
+              E (min,max):
+              (<input type="text" id="minE" oninput="minEChanged()"
+                      size="5" value="-0.35"/>,
+              <input type="text" id="maxE" oninput="maxEChanged()"
+                     size="5" value="0"/>)
+              <br>
+              E delta:
+              <input type="text" id="deltaE" oninput="deltaEChanged()"
+                      size="5" value="0.05"/>
+              <br>
+              <br>
             </td>
             <td>
               <u>Spiderweb plot</u>
