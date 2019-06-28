@@ -86,7 +86,8 @@ function getRockingNumber(d) {
     return d.theta_crossings;
   } else {
     // Out-of-phase
-    return d.pphi_rocking;
+    // return d.pphi_rocking;
+    return d.beta_crossings;
   }
 }
 
