@@ -346,9 +346,9 @@ function updateStatesVis() {
     .append('text')
     .html('E')
     .attr("class", "axis-label")
-    .append('tspan')
-    .attr('baseline-shift', 'sub')
-    .html('mnp')
+    // .append('tspan')
+    // .attr('baseline-shift', 'sub')
+    // .html('mnp')
   ;
 
   // x2 axis
