@@ -666,6 +666,14 @@ function deltaEChanged() {
   }
 }
 
+function radiusChanged() {
+  let f = parseFloat(document.getElementById('radius').value);
+  if (f == f) {
+    radius = f;
+    updateStatesVis();
+  }
+}
+
 function spiderLinesChanged() {
   updateSpiderWebVis();
 }
