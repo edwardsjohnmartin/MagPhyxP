@@ -20,6 +20,7 @@ function spiderTypeChanged() {
 
 function maxTChanged() {
   updateSpiderWebVis();
+  et.updateVis();
 }
 
 function updateSpiderWebVis() {

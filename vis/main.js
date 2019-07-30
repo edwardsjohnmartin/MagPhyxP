@@ -7,6 +7,8 @@ let bifurcationStatesUnique;
 
 let savingSvg = false;
 
+let et = new ET();
+
 let filter = {
   bounces : null,
   ptheta_rocking : null,
@@ -630,11 +632,13 @@ function parsePhaseFilter() {
 function bouncesFilterChanged() {
   parseBouncesFilter();
   updateStatesVis();
+  et.updateVis();
 }
 
 function wbouncesFilterChanged() {
   parseWBouncesFilter();
   updateSpiderWebVis();
+  et.updateVis();
 }
 
 function rockingFilterChanged() {
@@ -686,11 +690,13 @@ function phaseFilterChanged() {
 function uniqueStatesChanged() {
   updateStatesVis();
   updateSpiderWebVis();
+  et.updateVis();
 }
 
 function equalStatesChanged() {
   updateStatesVis();
   updateSpiderWebVis();
+  et.updateVis();
 }
 
 function primeFactors(n) {
@@ -844,6 +850,7 @@ function init() {
       parseRockingFilter();
       updateStatesVis();
       updateSpiderWebVis();
+      et.updateVis();
     });
 }
 
