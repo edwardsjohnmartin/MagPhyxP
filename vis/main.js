@@ -904,6 +904,31 @@ function saveSpiderSvg() {
   updateSpiderWebVis();
 }
 
+function saveETSvg() {
+  try {
+    var isFileSaverSupported = !!new Blob();
+  } catch (e) {
+    alert("blob not supported");
+  }
+
+  // Remove xlink attributes
+  savingSvg = true;
+  et.updateVis();
+
+  var html = d3.select("#et_svg")
+    .attr("title", "test2")
+    .attr("version", 1.1)
+    .attr("xmlns", "http://www.w3.org/2000/svg")
+    .node().outerHTML;
+
+  var blob = new Blob([html], {type: "image/svg+xml"});
+  saveAs(blob, "et.svg");
+
+  // Put xlink attributes back
+  savingSvg = false;
+  et.updateVis();
+}
+
 function keyDown(e) {
   // if (e.target != document.body) {
   //   if (e.target.type != "button") {
@@ -929,6 +954,9 @@ function keyDown(e) {
     break;
   case "W".charCodeAt(0):
     saveSpiderSvg();
+    break;
+  case "E".charCodeAt(0):
+    saveETSvg();
     break;
   case "J".charCodeAt(0):
   case 37:
