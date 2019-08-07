@@ -1,12 +1,12 @@
 // T / T2
 let T2 = 2*Math.PI/Math.sqrt((13+Math.sqrt(139))/6);
 
-function getT(T) {
+function getx(T) {
   return T/T2;
 }
 
 function xValue(d, xScale) {
-  return xScale(getT(d.T));
+  return xScale(getx(d.T));
 }
 
 // Returns the scaled y-coordinate direction of a data point.
@@ -85,14 +85,14 @@ function updateSpiderWebVis() {
 
   let xScale = d3.scaleLinear()
     // .domain([minT, 50])
-    // .domain([getT(minT), Math.ceil(getT(Tmax))])
-    .domain([0, Math.ceil(getT(Tmax))])
+    // .domain([getx(minT), Math.ceil(getx(Tmax))])
+    .domain([0, Math.ceil(getx(Tmax))])
     .range([0, dataWidth]);
 
   // console.log(xScale(16));
 
   let xAxisScale = d3.scaleLinear()
-    .domain([xScale.invert(0), Math.ceil(getT(Tmax))])
+    .domain([xScale.invert(0), Math.ceil(getx(Tmax))])
     .range([0, dataWidth]);
 
   let sizeScale = d3.scaleLinear()
@@ -124,7 +124,7 @@ function updateSpiderWebVis() {
 
   // x axis
   let tickValues = [];
-  for (let i = 0; i < Math.ceil(getT(Tmax))+1; i++) {
+  for (let i = 0; i < Math.ceil(getx(Tmax))+1; i++) {
     tickValues.push(i);
   }
   x_axis.tickValues(tickValues);
@@ -205,34 +205,8 @@ function updateSpiderWebVis() {
   //---------------------
   if (document.getElementById('bouncesLines').checked ||
       document.getElementById('allLines').checked) {
-    lineStates.sort((a,b) => {
-      if (a.numBounces == b.numBounces) {
-        return a.T - b.T;
-      }
-      return a.numBounces - b.numBounces;
-    });
-    for (let i = 0; i < lineStates.length; ) {
-      let start = i;
-      let m = lineStates[i].numBounces;
-      while (i < lineStates.length && lineStates[i].numBounces == m) {
-        i++;
-      }
-      let s = lineStates.slice(start, i);
-
-      let line = d3.line()
-        .x(d => xValue(d, xScale))
-        .y(d => yValue(d, yScale))
-        .curve(d3.curveCatmullRom.alpha(0.5))
-      ;
-      let c = color(s[0].numBounces);
-      c = d3.hsl(c).brighter(1);
-      dataGroup.append('path')
-        .attr("fill", "none")
-        .attr("stroke", '#888888')
-        // .attr("stroke", c)
-        .attr("stroke-width", 0.4)
-        .attr('d', line(s));
-    }
+    // addNumBouncesLinesFromData(dataGroup, xScale, yScale);
+    addNumBouncesLinesFromAnalysis(dataGroup, xScale, yScale);
   }
 
   //---------------------
@@ -307,4 +281,55 @@ function updateSpiderWebVis() {
   //   .attr("cy", svgHeight-topAxisY)
   // ;
 
+}
+
+function addNumBouncesLinesFromData(dataGroup, xScale, yScale) {
+  lineStates.sort((a,b) => {
+    if (a.numBounces == b.numBounces) {
+      return a.T - b.T;
+    }
+    return a.numBounces - b.numBounces;
+  });
+  for (let i = 0; i < lineStates.length; ) {
+    let start = i;
+    let m = lineStates[i].numBounces;
+    while (i < lineStates.length && lineStates[i].numBounces == m) {
+      i++;
+    }
+    
+    // Data fitted to points
+    let s = lineStates.slice(start, i);
+    let line = d3.line()
+      .x(d => xValue(d, xScale))
+      .y(d => yValue(d, yScale))
+      .curve(d3.curveCatmullRom.alpha(0.5))
+    ;
+
+    let c = color(s[0].numBounces);
+    c = d3.hsl(c).brighter(1);
+    dataGroup.append('path')
+      .attr("fill", "none")
+      .attr("stroke", '#888888')
+    // .attr("stroke", c)
+      .attr("stroke-width", 0.4)
+      .attr('d', line(s));
+  }
+}
+
+function addNumBouncesLinesFromAnalysis(dataGroup, xScale, yScale) {
+  for (let j = 0; j < spiderCurveX.length; j++) {
+    // Data provided by Boyd's analytical calculations
+    let line = d3.line()
+      .x((d,i) => xScale(spiderCurveX[j][i]))
+      .y((d,i) => yScale(spiderCurveY[i]))
+      .curve(d3.curveCatmullRom.alpha(0.5))
+    ;
+
+    let s = spiderCurveY;
+    dataGroup.append('path')
+      .attr("fill", "none")
+      .attr("stroke", '#888888')
+      .attr("stroke-width", 0.4)
+      .attr('d', line(s));
+  }
 }

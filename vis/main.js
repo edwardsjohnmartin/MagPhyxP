@@ -285,11 +285,11 @@ function updateStatesVis() {
   if (setETick) {
     etick = setETick;
   }
-  console.log(etick);
+  // console.log(etick);
   for (let e = minE; e <= maxE; e += etick) {
     xtickValues.push(e);
   }
-  console.log(xtickValues);
+  // console.log(xtickValues);
   let ytickValues = [0, 0.02, 0.04, 0.06, 0.08, 0.1, 0.12, 0.14, 0.16,
                      0.18, 0.2];
 
@@ -750,6 +750,92 @@ function haveSharedFactor(a, b, c) {
   return inter.size > 0;
 }
 
+function readStatesData(d) {
+  allStatesAll = [];
+  allStatesUnique = [];
+  bifurcationStatesAll = [];
+  bifurcationStatesUnique = [];
+  let cur_ptc = -1;
+  let cur_ppc = -1;
+  let cur_tc = -1;
+  let cur_pc = -1;
+  let cur_bc = -1;
+  let cur_n = -1;
+  let cur_phase = -1;
+  d.forEach(function(s) {
+    // Calculate the phase because sometimes the phase in the
+    // data is incorrect. Not sure why.
+    let calcPhase = (s.ptheta * s.pphi < 0) ? 0 : 1;
+    let unique = !haveSharedFactor(
+      s.n, s.ptheta_rocking, s.pphi_rocking);
+    let state = {
+      bifurcation : s.bifurcation,
+      numBounces : s.n,
+      energy : s.E,
+      pr : s.pr,
+      ptheta : s.ptheta,
+      pphi : s.pphi,
+      ptheta_rocking : s.ptheta_rocking,
+      pphi_rocking : s.pphi_rocking,
+      phase : calcPhase,
+      theta_crossings : s.theta_crossings,
+      phi_crossings : s.phi_crossings,
+      beta_crossings : s.beta_crossings,
+      T : s.period,
+      unique : unique,
+    };
+    allStatesAll.push(state);
+    if (unique) {
+      allStatesUnique.push(state);
+    }
+
+    if (s.bifurcation) {
+      bifurcationStatesAll.push(state);
+    }
+    cur_ptc = s.ptheta_rocking;
+    cur_ppc = s.pphi_rocking;
+    cur_tc = s.theta_crossing;
+    cur_pc = s.phi_crossing;
+    cur_bc = s.beta_crossing;
+    cur_n = s.n;
+    cur_phase = calcPhase;
+    // }
+  });
+  parseBouncesFilter();
+  parseWBouncesFilter();
+  parseRockingFilter();
+  updateStatesVis();
+  updateSpiderWebVis();
+  et.updateVis();
+}
+
+let spiderCurveX;
+let spiderCurveY;
+
+function readSpiderCurveData(d) {
+  spiderCurveY = [];
+  d.forEach(function(s) {
+    spiderCurveY.push(+s['E = -1/3a^3']);
+  });
+
+  spiderCurveX = [];
+  let cols = [
+    'T1np/T2','T2np/T2','T3np/T2','T4np/T2','T5np/T2','T6np/T2','T7np/T2',
+    'T9np/T2','T11np/T2','T13np/T2','T15np/T2','T19np/T2','T27np/T2',
+    'T31np/T2','T39np/T2','T47np/T2','T55np/T2','T63np/T2','T79np/T2',
+    'T111np/T2','T157np/T2','T997np/T2'
+  ];
+  for (let i = 0; i < cols.length; ++i) {
+    spiderCurveX.push([]);
+  }
+
+  d.forEach(function(s, i) {
+    cols.forEach((c,i) => {
+      spiderCurveX[i].push(+s[c]);
+    });
+  });
+}
+
 function init() {
   document.onkeydown = keyDown;
 
@@ -757,65 +843,11 @@ function init() {
   details.innerHTML = getDetailsHTML(null);
 
   // Read the dataset file
-  let dataset = "states_all.json";
-  d3.json(dataset)
-    .then(function(d) {
-      allStatesAll = [];
-      allStatesUnique = [];
-      bifurcationStatesAll = [];
-      bifurcationStatesUnique = [];
-      let cur_ptc = -1;
-      let cur_ppc = -1;
-      let cur_tc = -1;
-      let cur_pc = -1;
-      let cur_bc = -1;
-      let cur_n = -1;
-      let cur_phase = -1;
-      d.forEach(function(s) {
-        // Calculate the phase because sometimes the phase in the
-        // data is incorrect. Not sure why.
-        let calcPhase = (s.ptheta * s.pphi < 0) ? 0 : 1;
-        let unique = !haveSharedFactor(
-          s.n, s.ptheta_rocking, s.pphi_rocking);
-        let state = {
-          bifurcation : s.bifurcation,
-          numBounces : s.n,
-          energy : s.E,
-          pr : s.pr,
-          ptheta : s.ptheta,
-          pphi : s.pphi,
-          ptheta_rocking : s.ptheta_rocking,
-          pphi_rocking : s.pphi_rocking,
-          phase : calcPhase,
-          theta_crossings : s.theta_crossings,
-          phi_crossings : s.phi_crossings,
-          beta_crossings : s.beta_crossings,
-          T : s.period,
-          unique : unique,
-        };
-        allStatesAll.push(state);
-        if (unique) {
-          allStatesUnique.push(state);
-        }
-
-        if (s.bifurcation) {
-          bifurcationStatesAll.push(state);
-        }
-          cur_ptc = s.ptheta_rocking;
-          cur_ppc = s.pphi_rocking;
-          cur_tc = s.theta_crossing;
-          cur_pc = s.phi_crossing;
-          cur_bc = s.beta_crossing;
-          cur_n = s.n;
-          cur_phase = calcPhase;
-        // }
-      });
-      parseBouncesFilter();
-      parseWBouncesFilter();
-      parseRockingFilter();
-      updateStatesVis();
-      updateSpiderWebVis();
-      et.updateVis();
+  d3.csv('integralspider.csv')
+    .then(readSpiderCurveData)
+    .then(() => {
+      d3.json('states_all.json')
+        .then(readStatesData);
     });
 }
 
