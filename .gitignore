@@ -1,5 +1,6 @@
 release
 .DS_Store
+vis/.DS_Store
 .ipynb_checkpoints
 MagPhyxP_wrap.cxx
 __pycache__
