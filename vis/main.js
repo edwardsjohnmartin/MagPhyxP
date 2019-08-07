@@ -821,7 +821,7 @@ function readSpiderCurveData(d) {
   spiderCurveX = [];
   let cols = [
     'T1np/T2','T2np/T2','T3np/T2','T4np/T2','T5np/T2','T6np/T2','T7np/T2',
-    'T9np/T2','T11np/T2','T13np/T2','T15np/T2','T19np/T2','T27np/T2',
+    'T9np/T2','T11np/T2','T13np/T2','T15np/T2','T19np/T2','T23np/T2','T27np/T2',
     'T31np/T2','T39np/T2','T47np/T2','T55np/T2','T63np/T2','T79np/T2',
     'T111np/T2','T157np/T2','T997np/T2'
   ];
