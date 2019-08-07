@@ -753,12 +753,6 @@ function haveSharedFactor(a, b, c) {
 function init() {
   document.onkeydown = keyDown;
 
-  // let modes = parseNumbers(
-  //   document.getElementById('wbounces_filter').value, true);
-  // for (let i = 0; i < modes.length; i++) {
-  //   cmap[modes[i]] = i;
-  // }
-
   var details = document.getElementById('details');
   details.innerHTML = getDetailsHTML(null);
 
@@ -792,7 +786,6 @@ function init() {
           pphi : s.pphi,
           ptheta_rocking : s.ptheta_rocking,
           pphi_rocking : s.pphi_rocking,
-          // phase : s.phase,
           phase : calcPhase,
           theta_crossings : s.theta_crossings,
           phi_crossings : s.phi_crossings,
@@ -800,39 +793,11 @@ function init() {
           T : s.period,
           unique : unique,
         };
-        // if (s.n == 999) {
-        //   console.log(s);
-        // }
         allStatesAll.push(state);
         if (unique) {
           allStatesUnique.push(state);
         }
 
-        // if (s.ptheta_rocking != cur_ptc || s.pphi_rocking != cur_ppc || s.n != cur_n || calcPhase != cur_phase) {
-        // if (s.ptheta_rocking != cur_ptc &&
-        //     s.pphi_rocking != cur_ppc &&
-        //     s.n != cur_n &&
-        //     calcPhase != cur_phase) {
-        // if (s.ptheta_rocking != cur_ptc ||
-        //     s.pphi_rocking != cur_ppc ||
-        //     // s.theta_crossings != cur_tc ||
-        //     // s.phi_crossings != cur_pc ||
-        //     // s.beta_crossings != cur_bc ||
-        //     s.n != cur_n ||
-        //     calcPhase != cur_phase) {
-        // let bstate = calcPhase != cur_phase || s.n != cur_n;
-        // if (!bstate) {
-        //   if (calcPhase == 1) {
-        //     bstate = s.theta_crossings != cur_tc;
-        //   } else {
-        //     bstate = s.pphi_rocking != cur_ppc;
-        //   }
-        // }
-        // if (s.ptheta_rocking != cur_ptc ||
-        //     s.pphi_rocking != cur_ppc ||
-        //     s.n != cur_n ||
-        //     calcPhase != cur_phase) {
-        // if (bstate) {
         if (s.bifurcation) {
           bifurcationStatesAll.push(state);
         }
