@@ -167,7 +167,7 @@ void printUsage() {
 
 //------------------------------------------------------------
 // Command-line usage:
-//    magphyxp ptheta pphi energy
+//    magphyxp num_bounces ptheta pphi energy
 //------------------------------------------------------------
 int main(int argc, char** argv) {
   if (argc < 4) {

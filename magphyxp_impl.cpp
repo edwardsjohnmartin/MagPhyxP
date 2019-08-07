@@ -259,10 +259,13 @@ Dipole doSimulation(
   int ttheta_crossings = 0;
   int tphi_crossings = 0;
   int tbeta_crossings = 0;
+  int nsteps = 0;
+  int csteps = 0;
   while (n < o.numEvents) {
     try {
       // double currR = stepper.d.get_r();
       stepper.step();
+      nsteps++;
       // double newR = stepper.d.get_r();
       /* if (currR == 1.0 && newR == 1.0) {
         throw "same r value";
@@ -281,10 +284,15 @@ Dipole doSimulation(
     if (stepper.d.get_r() < 1) {
       // Handle collision. Iterate until we get close enough to reflect.
       stepper.undo();
+      nsteps--;
       while (stepper.d.get_r() > 1.0000000000001) {
         stepper.stepHalf();
+        csteps++;
+        nsteps++;
         if (stepper.d.get_r() < 1) {
           stepper.undo();
+          csteps--;
+          nsteps--;
         }
       }
 
@@ -315,6 +323,8 @@ Dipole doSimulation(
       }
     }
   }
+
+  // printf("nsteps = %d\ncsteps = %d\n", nsteps, csteps);
 
   if (ttheta_crossings % 2 == 1 && theta0 == 0) {
     ttheta_crossings++;
