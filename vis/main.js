@@ -1,3 +1,22 @@
+function changeLineNumber(errorText, startLine, endLine) {
+  let re = /line (\d+)/g;
+  console.log(errorText.match(re));
+  newErrorText = errorText.replace(re, (match,lineno,idx,str) => {
+    if (lineno < startLine) {
+      return 'line in prep code';
+    }
+    if (lineno < endLine) {
+      return 'line ' + (+lineno-startLine+1);
+    }
+    return 'line in test code';
+  });
+  return newErrorText;
+}
+
+let err = 'Error on line 8. Syntax error on line 12. Another error on line 215.';
+let newErr = changeLineNumber(err, 10, 15);
+console.log(err + '\nchanged to\n' + newErr);
+
 let googleColors = ["#3366cc", "#dc3912", "#ff9900", "#109618", "#990099", "#0099c6", "#dd4477", "#66aa00", "#b82e2e", "#316395", "#994499", "#22aa99", "#aaaa11", "#6633cc", "#e67300", "#8b0707", "#651067", "#329262", "#5574a6", "#3b3eac"];
 
 let allStatesAll;
